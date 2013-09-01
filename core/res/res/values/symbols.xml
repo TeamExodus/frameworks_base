@@ -2632,6 +2632,9 @@
   <java-symbol type="layout" name="unsupported_display_size_dialog_content" />
   <java-symbol type="string" name="unsupported_display_size_message" />
 
+  <!-- Package Manager -->
+  <java-symbol type="array" name="config_disabledComponents" />
+
   <!-- cpu boost for AppLaunch -->
   <java-symbol type="bool" name="config_enableCpuBoostForAppLaunch" />
   <java-symbol type="integer" name="launchboost_timeout_param" />
@@ -2732,4 +2735,7 @@
   <java-symbol type="string" name="power_key_emergency_number" />
   <java-symbol type="integer" name="power_key_hits_emergency" />
   <java-symbol type="bool" name="config_emergencyCallOnPowerkeyTapGestureEnabled" />
+
+  <!-- Package Manager -->
+  <java-symbol type="array" name="config_disabledComponents" />
 </resources>
