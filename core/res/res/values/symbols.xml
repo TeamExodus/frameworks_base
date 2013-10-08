@@ -2401,4 +2401,7 @@
   <java-symbol type="array" name="locale_carrier_names" />
 
   <java-symbol type="drawable" name="platlogo_m" />
+
+  <!-- Gesture Sensor -->
+  <java-symbol type="bool" name="config_enableGestureService" />
 </resources>
