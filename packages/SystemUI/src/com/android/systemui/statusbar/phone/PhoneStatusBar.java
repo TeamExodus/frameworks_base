@@ -16,7 +16,6 @@
 
 package com.android.systemui.statusbar.phone;
 
-
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.annotation.NonNull;
@@ -82,6 +81,7 @@ import android.util.DisplayMetrics;
 import android.util.EventLog;
 import android.util.Log;
 import android.view.Display;
+import android.view.Gravity;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
@@ -147,6 +147,7 @@ import com.android.systemui.statusbar.NotificationData.Entry;
 import com.android.systemui.statusbar.NotificationOverflowContainer;
 import com.android.systemui.statusbar.RemoteInputController;
 import com.android.systemui.statusbar.ScrimView;
+import com.android.systemui.statusbar.SettingConfirmationSnackbarView;
 import com.android.systemui.statusbar.SignalClusterView;
 import com.android.systemui.statusbar.StatusBarState;
 import com.android.systemui.statusbar.phone.UnlockMethodCache.OnUnlockMethodChangedListener;
@@ -696,6 +697,16 @@ public class PhoneStatusBar extends BaseStatusBar implements DemoMode,
 
         addNavigationBar();
 
+        if (mSnackbarView != null) {
+            final WindowManager.LayoutParams snackbarLp = new WindowManager.LayoutParams(
+                    LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT,
+                    WindowManager.LayoutParams.TYPE_NAVIGATION_BAR_PANEL,
+                    WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE,
+                    PixelFormat.TRANSLUCENT);
+            snackbarLp.gravity = Gravity.BOTTOM;
+            mWindowManager.addView(mSnackbarView, snackbarLp);
+        }
+
         // Lastly, call to the icon policy to install/update all the icons.
         mIconPolicy = new PhoneStatusBarPolicy(mContext, mIconController, mCastController,
                 mHotspotController, mUserInfoController, mBluetoothController,
@@ -793,10 +804,14 @@ public class PhoneStatusBar extends BaseStatusBar implements DemoMode,
             if (DEBUG) Log.v(TAG, "hasNavigationBar=" + showNav);
             if (showNav) {
                 createNavigationBarView(context);
+
             }
         } catch (RemoteException ex) {
             // no window manager? good luck with that
         }
+
+        mSnackbarView = (SettingConfirmationSnackbarView) View.inflate(context,
+                R.layout.setting_confirmation_snackbar, null);
 
         mAssistManager = new AssistManager(this, context);
 
@@ -4423,6 +4438,10 @@ public class PhoneStatusBar extends BaseStatusBar implements DemoMode,
 
     public NavigationBarView getNavigationBarView() {
         return mNavigationBarView;
+    }
+
+    public SettingConfirmationSnackbarView getSnackbarView() {
+        return mSnackbarView;
     }
 
     // ---------------------- DragDownHelper.OnDragDownListener ------------------------------------

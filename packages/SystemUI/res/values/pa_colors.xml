@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright 2016 ParanoidAndroid Project
+
+     Licensed under the Apache License, Version 2.0 (the "License");
+     you may not use this file except in compliance with the License.
+     You may obtain a copy of the License at
+
+         http://www.apache.org/licenses/LICENSE-2.0
+
+     Unless required by applicable law or agreed to in writing, software
+     distributed under the License is distributed on an "AS IS" BASIS,
+     WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+     See the License for the specific language governing permissions and
+     limitations under the License.
+-->
+<resources>
+
+    <!-- OnTheSpot: OTS snackbar background color. -->
+    <color name="on_the_spot_background">#FF263238</color>
+    <!-- OnTheSpot: OTS snackbar background shadow color. -->
+    <color name="on_the_spot_shadow">#33000000</color>
+    <!-- OnTheSpot: OTS snackbar description text color. -->
+    <color name="on_the_spot_text">#FFFFFFFF</color>
+    <!-- OnTheSpot: OTS snackbar action denial button text color. -->
+    <color name="on_the_spot_deny_text">#FF7A8890</color>
+    <!-- OnTheSpot: OTS snackbar action confirmation button text color. -->
+    <color name="on_the_spot_confirm_text">#FFFFFFFF</color>
+
+</resources>

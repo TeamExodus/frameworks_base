@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright 2016 ParanoidAndroid Project
+
+     Licensed under the Apache License, Version 2.0 (the "License");
+     you may not use this file except in compliance with the License.
+     You may obtain a copy of the License at
+
+         http://www.apache.org/licenses/LICENSE-2.0
+
+     Unless required by applicable law or agreed to in writing, software
+     distributed under the License is distributed on an "AS IS" BASIS,
+     WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+     See the License for the specific language governing permissions and
+     limitations under the License.
+-->
+<com.android.systemui.statusbar.SettingConfirmationSnackbarView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+
+    <View
+        android:id="@+id/shadow"
+        android:layout_width="match_parent"
+        android:layout_height="4dp"
+        android:layout_alignParentTop="true"
+        android:background="@drawable/on_the_spot_shadow" />
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/shadow"
+        android:background="@color/on_the_spot_background">
+
+        <TextView
+            android:id="@+id/description"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_alignParentTop="true"
+            android:layout_marginTop="18dp"
+            android:layout_marginLeft="16dp"
+            android:layout_marginRight="16dp"
+            android:textColor="@color/on_the_spot_text"
+            android:fontFamily="sans-serif"
+            android:textStyle="normal" />
+
+        <Button
+            android:id="@+id/action_deny"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentLeft="true"
+            android:layout_below="@id/description"
+            android:layout_marginTop="24dp"
+            android:layout_marginBottom="24dp"
+            android:layout_marginLeft="16dp"
+            android:minWidth="0dp"
+            android:minHeight="0dp"
+            android:background="@null"
+            android:textColor="@color/on_the_spot_deny_text"
+            android:fontFamily="sans-serif-medium"
+            android:textStyle="normal"
+            android:text="@string/on_the_spot_deny" />
+
+        <Button
+            android:id="@+id/action_confirm"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentRight="true"
+            android:layout_below="@id/description"
+            android:layout_marginTop="24dp"
+            android:layout_marginBottom="24dp"
+            android:layout_marginRight="16dp"
+            android:minWidth="0dp"
+            android:minHeight="0dp"
+            android:background="@null"
+            android:textColor="@color/on_the_spot_confirm_text"
+            android:fontFamily="sans-serif-medium"
+            android:textStyle="normal"
+            android:text="@string/on_the_spot_confirm" />
+
+    </RelativeLayout>
+
+</com.android.systemui.statusbar.SettingConfirmationSnackbarView>
