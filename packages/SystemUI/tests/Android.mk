@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+ifeq ($(ANDROID_TEST),true)
 LOCAL_PATH := $(call my-dir)
 include $(CLEAR_VARS)
 
@@ -97,3 +98,4 @@ local_classes :=
 local_comma :=
 local_space :=
 jacoco_exclude :=
+endif
