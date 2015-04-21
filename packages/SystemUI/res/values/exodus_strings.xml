@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
 /**
- * Copyright (c) 2015-2017, The ParanoidAndroid Project Project
+ * Copyright (c) 2017, The ExodusAndroid Project Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); 
  * you may not use this file except in compliance with the License. 
@@ -117,4 +117,11 @@
 
     <string name="quick_settings_alert_slider_detail_priority_events_title">Events</string>
     <string name="quick_settings_alert_slider_detail_priority_reminders_title">Reminders</string>
+
+    <string name="quick_settings_heads_up_label">Heads up</string>
+    <string name="accessibility_quick_settings_heads_up_off">Heads up off</string>
+    <string name="accessibility_quick_settings_heads_up_on">Heads up on</string>
+    <string name="accessibility_quick_settings_heads_up_changed_off">Heads up turned off</string>
+    <string name="accessibility_quick_settings_heads_up_changed_on">Heads up turned on</string>
+
 </resources>
