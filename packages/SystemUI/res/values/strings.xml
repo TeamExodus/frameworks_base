@@ -518,7 +518,7 @@
     <!-- Announcement made when the bluetooth is turned on (not shown on the screen). [CHAR LIMIT=NONE] -->
     <string name="accessibility_quick_settings_bluetooth_changed_on">Bluetooth turned on.</string>
     <!-- Content description of the location tile in quick settings when off (not shown on the screen). [CHAR LIMIT=NONE] -->
-    <string name="accessibility_quick_settings_location_off">Location reporting off.</string>
+    <string name="accessibility_quick_settings_location_off">Location reporting off</string>
     <!-- Content description of the location tile in quick settings when on (not shown on the screen). [CHAR LIMIT=NONE] -->
     <string name="accessibility_quick_settings_location_on">Location reporting on.</string>
     <!-- Announcement made when the location tile changes to off (not shown on the screen). [CHAR LIMIT=NONE] -->
@@ -685,7 +685,7 @@
     <!-- QuickSettings: Location [CHAR LIMIT=NONE] -->
     <string name="quick_settings_location_label">Location</string>
     <!-- QuickSettings: Location (Off) [CHAR LIMIT=NONE] -->
-    <string name="quick_settings_location_off_label">Location Off</string>
+    <string name="quick_settings_location_off_label">Location off</string>
     <!-- QuickSettings: Media device [CHAR LIMIT=NONE] -->
     <string name="quick_settings_media_device_label">Media device</string>
     <!-- QuickSettings: RSSI [CHAR LIMIT=NONE] -->

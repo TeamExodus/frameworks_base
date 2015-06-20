@@ -2224,5 +2224,8 @@ message MetricsEvent {
     QS_IMMERSIVE = 501;
     QS_IMMERSIVE_DETAILS = 502;
     QS_IMMERSIVE_TOGGLE = 503;
+
+    // Location detail adapter
+    QS_LOCATION_DETAIL = 504;
   }
 }
