@@ -374,7 +374,7 @@ public class LockSettingsService extends ILockSettings.Stub {
     }
 
     public void retainPassword(String password) {
-        if (LockPatternUtils.isDeviceEncryptionEnabled()) {
+         if (LockPatternUtils.isDeviceEncryptionEnabled()) {
             if (password != null)
                 mSavePassword = password;
             else
