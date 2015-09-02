@@ -2400,7 +2400,7 @@ class MountService extends IMountService.Stub
         }
     }
 
-    public int encryptStorage(int type, String password) {
+    private int encryptStorageExtended(int type, String password, boolean wipe) {
         if (TextUtils.isEmpty(password) && type != StorageManager.CRYPT_TYPE_DEFAULT) {
             throw new IllegalArgumentException("password cannot be empty");
         }
@@ -2416,10 +2416,10 @@ class MountService extends IMountService.Stub
 
         try {
             if (type == StorageManager.CRYPT_TYPE_DEFAULT) {
-                mCryptConnector.execute("cryptfs", "enablecrypto", "inplace",
+                mCryptConnector.execute("cryptfs", "enablecrypto", wipe ? "wipe" : "inplace",
                                 CRYPTO_TYPES[type]);
             } else {
-                mCryptConnector.execute("cryptfs", "enablecrypto", "inplace",
+                mCryptConnector.execute("cryptfs", "enablecrypto", wipe ? "wipe" : "inplace",
                                 CRYPTO_TYPES[type], new SensitiveArg(password));
             }
         } catch (NativeDaemonConnectorException e) {
@@ -2428,6 +2428,22 @@ class MountService extends IMountService.Stub
         }
 
         return 0;
+    }
+
+    /** Encrypt Storage given a password.
+     *  @param type The password type.
+     *  @param password The password to be used in encryption.
+     */
+    public int encryptStorage(int type, String password) {
+        return encryptStorageExtended(type, password, false);
+    }
+
+    /** Encrypt Storage given a password after wiping it.
+     *  @param type The password type.
+     *  @param password The password to be used in encryption.
+     */
+    public int encryptWipeStorage(int type, String password) {
+        return encryptStorageExtended(type, password, true);
     }
 
     /** Set the password for encrypting the master key.
@@ -2444,9 +2460,13 @@ class MountService extends IMountService.Stub
             Slog.i(TAG, "changing encryption password...");
         }
 
+        LockSettingsService lockSettings = new LockSettingsService(mContext);
+        String currentPassword = lockSettings.getPassword();
+
         try {
             NativeDaemonEvent event = mCryptConnector.execute("cryptfs", "changepw", CRYPTO_TYPES[type],
-                        new SensitiveArg(password));
+                        new SensitiveArg(currentPassword), new SensitiveArg(password));
+            lockSettings.sanitizePassword();
             return Integer.parseInt(event.getMessage());
         } catch (NativeDaemonConnectorException e) {
             // Encryption failed
@@ -2612,11 +2632,10 @@ class MountService extends IMountService.Stub
                     + event.getMessage();
                 Slog.e(TAG,  error);
                 // ext4enc:TODO is this the right exception?
-                throw new RuntimeException(error);
+                throw new NativeDaemonConnectorException(error);
             }
         } catch (NativeDaemonConnectorException e) {
-            Slog.e(TAG, "createnewuserdir threw exception", e);
-            throw new RuntimeException("createnewuserdir threw exception", e);
+            throw e.rethrowAsParcelableException();
         }
     }
 
@@ -2641,11 +2660,10 @@ class MountService extends IMountService.Stub
                     + event.getMessage();
                 Slog.e(TAG,  error);
                 // ext4enc:TODO is this the right exception?
-                throw new RuntimeException(error);
+                throw new NativeDaemonConnectorException(error);
             }
         } catch (NativeDaemonConnectorException e) {
-            Slog.e(TAG, "deleteuserkey threw exception", e);
-            throw new RuntimeException("deleteuserkey threw exception", e);
+            throw e.rethrowAsParcelableException();
         }
     }
 
