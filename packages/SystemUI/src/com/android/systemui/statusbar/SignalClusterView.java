@@ -52,7 +52,7 @@ public class SignalClusterView
         SecurityController.SecurityControllerCallback, Tunable {
 
     static final String TAG = "SignalClusterView";
-    static final boolean DEBUG = Log.isLoggable(TAG, Log.DEBUG);
+    static final boolean DEBUG = false;
 
     private static final String SLOT_AIRPLANE = "airplane";
     private static final String SLOT_MOBILE = "mobile";
