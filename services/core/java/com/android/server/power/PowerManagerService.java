@@ -56,6 +56,7 @@ import android.service.dreams.DreamManagerInternal;
 import android.service.vr.IVrManager;
 import android.service.vr.IVrStateCallbacks;
 import android.util.EventLog;
+import android.util.PrintWriterPrinter;
 import android.util.Log;
 import android.util.Slog;
 import android.util.SparseIntArray;
