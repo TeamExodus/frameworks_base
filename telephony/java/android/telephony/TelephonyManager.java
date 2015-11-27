@@ -1170,6 +1170,15 @@ public class TelephonyManager {
         return retVal;
     }
 
+    /**
+     * Return if the current radio is LTE on GSM
+     * @hide
+     */
+    public static int getLteOnGsmModeStatic() {
+        return SystemProperties.getInt(TelephonyProperties.PROPERTY_LTE_ON_GSM_DEVICE,
+                    0);
+    }
+
     //
     //
     // Current Network
@@ -1644,6 +1653,37 @@ public class TelephonyManager {
         }
     }
 
+    /**
+     * convert network class to string base on network type
+     * @param type for which network type is returned
+     * @return the network class type string
+     * @hide
+     */
+    public String networkClassToString(int type) {
+        String ratClassName = "";
+        int networkClass = getNetworkClass(type);
+        Rlog.d(TAG, "networkType = " + type + " networkClass = " + networkClass);
+        if (mContext == null) return null;
+        switch (networkClass) {
+            case TelephonyManager.NETWORK_CLASS_2_G:
+                ratClassName = mContext.getResources().getString(
+                        com.android.internal.R.string.config_rat_2g);
+                break;
+            case TelephonyManager.NETWORK_CLASS_3_G:
+                ratClassName = mContext.getResources().getString(
+                        com.android.internal.R.string.config_rat_3g);
+                break;
+            case TelephonyManager.NETWORK_CLASS_4_G:
+               ratClassName = mContext.getResources().getString(
+                        com.android.internal.R.string.config_rat_4g);
+                break;
+            default:
+                ratClassName = "";
+                break;
+        }
+        return ratClassName;
+    }
+
     //
     //
     // SIM Card
@@ -2002,6 +2042,21 @@ public class TelephonyManager {
         } catch (NullPointerException ex) {
             // This could happen before phone restarts due to crashing
             return PhoneConstants.LTE_ON_CDMA_UNKNOWN;
+        }
+    }
+
+    /**
+     * Return if the current radio is LTE on GSM
+     * @hide
+     */
+    public int getLteOnGsmMode() {
+        try {
+            return getITelephony().getLteOnGsmMode();
+        } catch (RemoteException ex) {
+            return 0;
+        } catch (NullPointerException ex) {
+            // This could happen before phone restarts due to crashing
+            return 0;
         }
     }
 
