@@ -1187,7 +1187,8 @@ public class AppOpsManager {
         }
         for (int i=0; i<_NUM_OP; i++) {
             if (sOpPerms[i] != null) {
-                sPermToOp.put(sOpPerms[i], i);
+                int op = sPermToOp.containsKey(sOpPerms[i]) ? opToSwitch(i) : i;
+                sPermToOp.put(sOpPerms[i], op);
             }
         }
         for (int i=0; i<_NUM_OP; i++) {

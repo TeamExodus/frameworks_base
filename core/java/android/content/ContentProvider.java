@@ -516,14 +516,14 @@ public abstract class ContentProvider implements ComponentCallbacks2 {
      * associated with that permission.
      */
     private int checkPermissionAndAppOp(String permission, String callingPkg,
-            IBinder callerToken) {
+            IBinder callerToken, int appOp) {
         if (getContext().checkPermission(permission, Binder.getCallingPid(), Binder.getCallingUid(),
                 callerToken) != PERMISSION_GRANTED) {
             return MODE_ERRORED;
         }
 
         final int permOp = AppOpsManager.permissionToOpCode(permission);
-        if (permOp != AppOpsManager.OP_NONE) {
+        if (permOp != AppOpsManager.OP_NONE && permOp != appOp) {
             return mTransport.mAppOpsManager.noteProxyOp(permOp, callingPkg);
         }
 
@@ -546,7 +546,8 @@ public abstract class ContentProvider implements ComponentCallbacks2 {
         if (mExported && checkUser(pid, uid, context)) {
             final String componentPerm = getReadPermission();
             if (componentPerm != null) {
-                final int mode = checkPermissionAndAppOp(componentPerm, callingPkg, callerToken);
+                final int mode = checkPermissionAndAppOp(componentPerm, callingPkg,
+                        callerToken, mTransport.mReadOp);
                 if (mode == MODE_ALLOWED) {
                     return MODE_ALLOWED;
                 } else {
@@ -565,7 +566,8 @@ public abstract class ContentProvider implements ComponentCallbacks2 {
                 for (PathPermission pp : pps) {
                     final String pathPerm = pp.getReadPermission();
                     if (pathPerm != null && pp.match(path)) {
-                        final int mode = checkPermissionAndAppOp(pathPerm, callingPkg, callerToken);
+                        final int mode = checkPermissionAndAppOp(pathPerm, callingPkg,
+                                callerToken, mTransport.mReadOp);
                         if (mode == MODE_ALLOWED) {
                             return MODE_ALLOWED;
                         } else {
@@ -623,7 +625,8 @@ public abstract class ContentProvider implements ComponentCallbacks2 {
         if (mExported && checkUser(pid, uid, context)) {
             final String componentPerm = getWritePermission();
             if (componentPerm != null) {
-                final int mode = checkPermissionAndAppOp(componentPerm, callingPkg, callerToken);
+                final int mode = checkPermissionAndAppOp(componentPerm, callingPkg,
+                        callerToken, mTransport.mWriteOp);
                 if (mode == MODE_ALLOWED) {
                     return MODE_ALLOWED;
                 } else {
@@ -642,7 +645,8 @@ public abstract class ContentProvider implements ComponentCallbacks2 {
                 for (PathPermission pp : pps) {
                     final String pathPerm = pp.getWritePermission();
                     if (pathPerm != null && pp.match(path)) {
-                        final int mode = checkPermissionAndAppOp(pathPerm, callingPkg, callerToken);
+                        final int mode = checkPermissionAndAppOp(pathPerm, callingPkg,
+                                callerToken, mTransport.mWriteOp);
                         if (mode == MODE_ALLOWED) {
                             return MODE_ALLOWED;
                         } else {
