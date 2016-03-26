@@ -85,4 +85,10 @@ interface IImsRegistrationListener {
      * @param count The number of waiting voice messages.
      */
     void voiceMessageCountUpdate(int count) = 7;
+
+    /**
+     * Compatibility with AOSP
+     */
+    void registrationConnected() = 8;
+    void registrationProgressing() = 9;
 }
