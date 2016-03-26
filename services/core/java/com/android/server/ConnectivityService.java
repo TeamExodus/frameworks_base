@@ -71,7 +71,6 @@ import android.net.ProxyInfo;
 import android.net.RouteInfo;
 import android.net.UidRange;
 import android.net.Uri;
-import android.net.wifi.WifiDevice;
 import android.os.Binder;
 import android.os.Bundle;
 import android.os.FileUtils;
@@ -170,6 +169,7 @@ public class ConnectivityService extends IConnectivityManager.Stub
     private static final boolean VDBG = false;
 
     private static final boolean LOGD_RULES = false;
+    private static final boolean LOGD_BLOCKED_NETWORKINFO = true;
 
     // TODO: create better separation between radio types and network types
 
@@ -956,6 +956,21 @@ public class ConnectivityService extends IConnectivityManager.Stub
         }
     }
 
+    private void maybeLogBlockedNetworkInfo(NetworkInfo ni, int uid) {
+        if (ni == null || !LOGD_BLOCKED_NETWORKINFO) return;
+        boolean removed = false;
+        boolean added = false;
+        synchronized (mBlockedAppUids) {
+            if (ni.getDetailedState() == DetailedState.BLOCKED && mBlockedAppUids.add(uid)) {
+                added = true;
+            } else if (ni.isConnected() && mBlockedAppUids.remove(uid)) {
+                removed = true;
+            }
+        }
+        if (added) log("Returning blocked NetworkInfo to uid=" + uid);
+        else if (removed) log("Returning unblocked NetworkInfo to uid=" + uid);
+    }
+
     /**
      * Return a filtered {@link NetworkInfo}, potentially marked
      * {@link DetailedState#BLOCKED} based on
@@ -966,10 +981,6 @@ public class ConnectivityService extends IConnectivityManager.Stub
             // network is blocked; clone and override state
             info = new NetworkInfo(info);
             info.setDetailedState(DetailedState.BLOCKED, null, null);
-            if (VDBG) {
-                log("returning Blocked NetworkInfo for ifname=" +
-                        lp.getInterfaceName() + ", uid=" + uid);
-            }
         }
         if (info != null && mLockdownTracker != null) {
             info = mLockdownTracker.augmentNetworkInfo(info);
@@ -990,7 +1001,9 @@ public class ConnectivityService extends IConnectivityManager.Stub
         enforceAccessPermission();
         final int uid = Binder.getCallingUid();
         NetworkState state = getUnfilteredActiveNetworkState(uid);
-        return getFilteredNetworkInfo(state.networkInfo, state.linkProperties, uid);
+        NetworkInfo ni = getFilteredNetworkInfo(state.networkInfo, state.linkProperties, uid);
+        maybeLogBlockedNetworkInfo(ni, uid);
+        return ni;
     }
 
     @Override
@@ -2580,14 +2593,6 @@ public class ConnectivityService extends IConnectivityManager.Stub
         }
     }
 
-    public List<WifiDevice> getTetherConnectedSta() {
-        if (isTetheringSupported()) {
-            return mTethering.getTetherConnectedSta();
-        } else {
-            return null;
-        }
-    }
-
     // javadoc from interface
     public int tether(String iface) {
         ConnectivityManager.enforceTetherChangePermission(mContext);
@@ -3890,6 +3895,9 @@ public class ConnectivityService extends IConnectivityManager.Stub
     // NOTE: Only should be accessed on ConnectivityServiceThread, except dump().
     private final HashMap<Messenger, NetworkAgentInfo> mNetworkAgentInfos =
             new HashMap<Messenger, NetworkAgentInfo>();
+
+    @GuardedBy("mBlockedAppUids")
+    private final HashSet<Integer> mBlockedAppUids = new HashSet();
 
     // Note: if mDefaultRequest is changed, NetworkMonitor needs to be updated.
     private final NetworkRequest mDefaultRequest;

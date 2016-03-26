@@ -61,7 +61,6 @@ import com.android.server.display.DisplayManagerService;
 import com.android.server.dreams.DreamManagerService;
 import com.android.server.fingerprint.FingerprintService;
 import com.android.server.hdmi.HdmiControlService;
-import com.android.server.gesture.GestureService;
 import com.android.server.input.InputManagerService;
 import com.android.server.job.JobSchedulerService;
 import com.android.server.lights.LightsService;
@@ -310,7 +309,7 @@ public final class SystemServer {
     private void createSystemContext() {
         ActivityThread activityThread = ActivityThread.systemMain();
         mSystemContext = activityThread.getSystemContext();
-        mSystemContext.setTheme(android.R.style.Theme_DeviceDefault_Light_DarkActionBar);
+        mSystemContext.setTheme(android.R.style.Theme_Material_DayNight_DarkActionBar);
     }
 
     /**
@@ -500,7 +499,7 @@ public final class SystemServer {
             Slog.i(TAG, "Window Manager");
             wm = WindowManagerService.main(context, inputManager,
                     mFactoryTestMode != FactoryTest.FACTORY_TEST_LOW_LEVEL,
-                    true, mOnlyCore);
+                    !mFirstBoot, mOnlyCore);
             ServiceManager.addService(Context.WINDOW_SERVICE, wm);
             ServiceManager.addService(Context.INPUT_SERVICE, inputManager);
 
@@ -543,7 +542,6 @@ public final class SystemServer {
         LockSettingsService lockSettings = null;
         AssetAtlasService atlas = null;
         MediaRouterService mediaRouter = null;
-        GestureService gestureService = null;
 
         // Bring up services needed for UI.
         if (mFactoryTestMode != FactoryTest.FACTORY_TEST_LOW_LEVEL) {
@@ -827,6 +825,11 @@ public final class SystemServer {
 
             if (!disableNonCoreServices) {
                 mSystemServiceManager.startService(DockObserver.class);
+
+                if (context.getPackageManager().hasSystemFeature
+                        (PackageManager.FEATURE_WATCH)) {
+                    mSystemServiceManager.startService(ThermalObserver.class);
+                }
             }
 
             try {
@@ -949,17 +952,6 @@ public final class SystemServer {
                         new GraphicsStatsService(context));
             }
 
-            if (context.getResources().getBoolean(
-                    com.android.internal.R.bool.config_enableGestureService)) {
-                try {
-                    Slog.i(TAG, "Gesture Sensor Service");
-                    gestureService = new GestureService(context, inputManager);
-                    ServiceManager.addService("gesture", gestureService);
-                } catch (Throwable e) {
-                    Slog.e(TAG, "Failure starting Gesture Sensor Service", e);
-                }
-            }
-
             if (mPackageManager.hasSystemFeature(PackageManager.FEATURE_PRINTING)) {
                 mSystemServiceManager.startService(PRINT_MANAGER_SERVICE_CLASS);
             }
@@ -1060,6 +1052,12 @@ public final class SystemServer {
         w.getDefaultDisplay().getMetrics(metrics);
         context.getResources().updateConfiguration(config, metrics);
 
+        // The system context's theme may be configuration-dependent.
+        final Theme systemTheme = context.getTheme();
+        if (systemTheme.getChangingConfigurations() != 0) {
+            systemTheme.rebase();
+        }
+
         try {
             // TODO: use boot phase
             mPowerManagerService.systemReady(mActivityManagerService.getAppOpsService());
@@ -1078,14 +1076,6 @@ public final class SystemServer {
             mDisplayManagerService.systemReady(safeMode, mOnlyCore);
         } catch (Throwable e) {
             reportWtf("making Display Manager Service ready", e);
-        }
-
-        if (gestureService != null) {
-            try {
-                gestureService.systemReady();
-            } catch (Throwable e) {
-                reportWtf("making Gesture Sensor Service ready", e);
-            }
         }
 
         // These are needed to propagate to the runnable below.

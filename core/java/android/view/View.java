@@ -9284,7 +9284,6 @@ public class View implements Drawable.Callback, KeyEvent.Callback,
 
         final int actionMasked = event.getActionMasked();
         if (actionMasked == MotionEvent.ACTION_DOWN) {
-            android.util.SeempLog.record(3);
             // Defensive cleanup for new gesture
             stopNestedScroll();
         }
@@ -9829,7 +9828,6 @@ public class View implements Drawable.Callback, KeyEvent.Callback,
      * @param event   The KeyEvent object that defines the button action.
      */
     public boolean onKeyDown(int keyCode, KeyEvent event) {
-        android.util.SeempLog.record(4);
         boolean result = false;
 
         if (KeyEvent.isConfirmKey(keyCode)) {
@@ -9874,7 +9872,6 @@ public class View implements Drawable.Callback, KeyEvent.Callback,
      * @param event   The KeyEvent object that defines the button action.
      */
     public boolean onKeyUp(int keyCode, KeyEvent event) {
-        android.util.SeempLog.record(5);
         if (KeyEvent.isConfirmKey(keyCode)) {
             if ((mViewFlags & ENABLED_MASK) == DISABLED) {
                 return true;
@@ -10272,7 +10269,6 @@ public class View implements Drawable.Callback, KeyEvent.Callback,
      * @return True if the event was handled, false otherwise.
      */
     public boolean onTouchEvent(MotionEvent event) {
-        android.util.SeempLog.record(3);
         final float x = event.getX();
         final float y = event.getY();
         final int viewFlags = mViewFlags;
@@ -15944,7 +15940,8 @@ public class View implements Drawable.Callback, KeyEvent.Callback,
         RenderNode renderNode = null;
         Bitmap cache = null;
         int layerType = getLayerType(); // TODO: signify cache state with just 'cache' local
-        if (!drawingWithRenderNode && layerType != LAYER_TYPE_NONE) {
+        if (layerType == LAYER_TYPE_SOFTWARE
+                || (!drawingWithRenderNode && layerType != LAYER_TYPE_NONE)) {
             // If not drawing with RenderNode, treat HW layers as SW
             layerType = LAYER_TYPE_SOFTWARE;
             buildDrawingCache(true);
@@ -16940,8 +16937,10 @@ public class View implements Drawable.Callback, KeyEvent.Callback,
      */
     @CallSuper
     protected boolean verifyDrawable(Drawable who) {
-        return who == mBackground || (mScrollCache != null && mScrollCache.scrollBar == who)
-                || (mForegroundInfo != null && mForegroundInfo.mDrawable == who);
+        // Avoid verifying the scroll bar drawable so that we don't end up in
+        // an invalidation loop. This effectively prevents the scroll bar
+        // drawable from triggering invalidations and scheduling runnables.
+        return who == mBackground || (mForegroundInfo != null && mForegroundInfo.mDrawable == who);
     }
 
     /**

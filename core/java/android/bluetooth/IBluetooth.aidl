@@ -70,11 +70,6 @@ interface IBluetooth
     boolean fetchRemoteUuids(in BluetoothDevice device);
     boolean sdpSearch(in BluetoothDevice device, in ParcelUuid uuid);
 
-    int createMapMnsSdpRecord(in String serviceName, in int rfcommChannel,
-            in int l2capPsm, in int version, in int features);
-    int createPbapPceSdpRecord(in String serviceName, in int version);
-    boolean removeSdpRecord(in int recordHandle);
-
     boolean setPin(in BluetoothDevice device, boolean accept, int len, in byte[] pinCode);
     boolean setPasskey(in BluetoothDevice device, boolean accept, int len, in byte[]
     passkey);
@@ -111,7 +106,4 @@ interface IBluetooth
     void dump(in ParcelFileDescriptor fd);
     void onLeServiceUp();
     void onBrEdrDown();
-
-    int setSocketOpt(int type, int port, int optionName, in byte [] optionVal, int optionLen);
-    int getSocketOpt(int type, int port, int optionName, out byte [] optionVal);
 }

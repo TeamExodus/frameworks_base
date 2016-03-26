@@ -50,7 +50,6 @@ public class KeyguardSimPukView extends KeyguardPinBasedInputView {
 
     private ProgressDialog mSimUnlockProgressDialog = null;
     private CheckSimPuk mCheckSimPukThread;
-    private boolean mShowDefaultMessage = true;
     private String mPukText;
     private String mPinText;
     private StateMachine mStateMachine = new StateMachine();
@@ -134,10 +133,7 @@ public class KeyguardSimPukView extends KeyguardPinBasedInputView {
                         color = info.getIconTint();
                     }
                 }
-                if (mShowDefaultMessage) {
-                    mSecurityMessageDisplay.setMessage(msg, true);
-                }
-                mShowDefaultMessage = true;
+                mSecurityMessageDisplay.setMessage(msg, true);
                 mSimImageView.setImageTintList(ColorStateList.valueOf(color));
             }
             mPasswordEntry.requestFocus();
@@ -332,7 +328,6 @@ public class KeyguardSimPukView extends KeyguardPinBasedInputView {
                                         .reportSimUnlocked(mSubId);
                                 mCallback.dismiss(true);
                             } else {
-                                mShowDefaultMessage = false;
                                 if (result == PhoneConstants.PIN_PASSWORD_INCORRECT) {
                                     if (attemptsRemaining <= 2) {
                                         // this is getting critical - show dialog

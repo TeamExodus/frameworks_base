@@ -512,35 +512,33 @@ public class AppOpsService extends IAppOpsService.Stub {
         String[] uidPackageNames = getPackagesForUid(uid);
         ArrayMap<Callback, ArraySet<String>> callbackSpecs = null;
 
-        synchronized (this) {
-            ArrayList<Callback> callbacks = mOpModeWatchers.get(code);
+        ArrayList<Callback> callbacks = mOpModeWatchers.get(code);
+        if (callbacks != null) {
+            final int callbackCount = callbacks.size();
+            for (int i = 0; i < callbackCount; i++) {
+                Callback callback = callbacks.get(i);
+                ArraySet<String> changedPackages = new ArraySet<>();
+                Collections.addAll(changedPackages, uidPackageNames);
+                callbackSpecs = new ArrayMap<>();
+                callbackSpecs.put(callback, changedPackages);
+            }
+        }
+
+        for (String uidPackageName : uidPackageNames) {
+            callbacks = mPackageModeWatchers.get(uidPackageName);
             if (callbacks != null) {
+                if (callbackSpecs == null) {
+                    callbackSpecs = new ArrayMap<>();
+                }
                 final int callbackCount = callbacks.size();
                 for (int i = 0; i < callbackCount; i++) {
                     Callback callback = callbacks.get(i);
-                    ArraySet<String> changedPackages = new ArraySet<>();
-                    Collections.addAll(changedPackages, uidPackageNames);
-                    callbackSpecs = new ArrayMap<>();
-                    callbackSpecs.put(callback, changedPackages);
-                }
-            }
-
-            for (String uidPackageName : uidPackageNames) {
-                callbacks = mPackageModeWatchers.get(uidPackageName);
-                if (callbacks != null) {
-                    if (callbackSpecs == null) {
-                        callbackSpecs = new ArrayMap<>();
+                    ArraySet<String> changedPackages = callbackSpecs.get(callback);
+                    if (changedPackages == null) {
+                        changedPackages = new ArraySet<>();
+                        callbackSpecs.put(callback, changedPackages);
                     }
-                    final int callbackCount = callbacks.size();
-                    for (int i = 0; i < callbackCount; i++) {
-                        Callback callback = callbacks.get(i);
-                        ArraySet<String> changedPackages = callbackSpecs.get(callback);
-                        if (changedPackages == null) {
-                            changedPackages = new ArraySet<>();
-                            callbackSpecs.put(callback, changedPackages);
-                        }
-                        changedPackages.add(uidPackageName);
-                    }
+                    changedPackages.add(uidPackageName);
                 }
             }
         }

@@ -1,5 +1,4 @@
 /*
- * Copyright (c) 2015, The Linux Foundation. All rights reserved.
  * Copyright (C) 2014 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -18,7 +17,6 @@
 package android.bluetooth;
 
 import android.bluetooth.BluetoothDevice;
-import android.bluetooth.BluetoothAvrcpInfo;
 
 /**
  * APIs for Bluetooth AVRCP controller service
@@ -30,10 +28,4 @@ interface IBluetoothAvrcpController {
     List<BluetoothDevice> getDevicesMatchingConnectionStates(in int[] states);
     int getConnectionState(in BluetoothDevice device);
     void sendPassThroughCmd(in BluetoothDevice device, int keyCode, int keyState);
-    void getMetaData(in int[] attributeIds);
-    void getPlayStatus(in int[] playStatusIds);
-    void getPlayerApplicationSetting();
-    void setPlayerApplicationSetting(in int attributeId, in int attribVal);
-    BluetoothAvrcpInfo getSupportedPlayerAppSetting(in BluetoothDevice device);
-    int getSupportedFeatures(in BluetoothDevice device);
 }

@@ -195,8 +195,6 @@ import android.util.SparseBooleanArray;
 import android.util.SparseIntArray;
 import android.util.Xml;
 import android.view.Display;
-import android.view.WindowManager;
-import android.view.WindowManagerPolicy;
 
 import dalvik.system.DexFile;
 import dalvik.system.VMRuntime;
@@ -222,7 +220,6 @@ import com.android.server.EventLogTags;
 import com.android.server.FgThread;
 import com.android.server.IntentResolver;
 import com.android.server.LocalServices;
-import com.android.server.policy.PhoneWindowManager;
 import com.android.server.ServiceThread;
 import com.android.server.SystemConfig;
 import com.android.server.Watchdog;
@@ -499,6 +496,7 @@ public class PackageManagerService extends IPackageManager.Stub {
      * Whether or not system app permissions should be promoted from install to runtime.
      */
     boolean mPromoteSystemApps;
+
     final Settings mSettings;
     boolean mRestoredSettings;
 
@@ -506,7 +504,6 @@ public class PackageManagerService extends IPackageManager.Stub {
     final int[] mGlobalGids;
     final SparseArray<ArraySet<String>> mSystemPermissions;
     final ArrayMap<String, FeatureInfo> mAvailableFeatures;
-    final ArrayMap<Signature, ArraySet<String>> mSignatureAllowances;
 
     // If mac_permissions.xml was found for seinfo labeling.
     boolean mFoundPolicyFile;
@@ -920,9 +917,6 @@ public class PackageManagerService extends IPackageManager.Stub {
 
     // Stores a list of users whose package restrictions file needs to be updated
     private ArraySet<Integer> mDirtyUsers = new ArraySet<Integer>();
-
-    WindowManager mWindowManager;
-    private final WindowManagerPolicy mPolicy; // to set packageName
 
     final private DefaultContainerConnection mDefContainerConn =
             new DefaultContainerConnection();
@@ -1858,11 +1852,6 @@ public class PackageManagerService extends IPackageManager.Stub {
             mSeparateProcesses = null;
         }
 
-        mWindowManager = (WindowManager)context.getSystemService(Context.WINDOW_SERVICE);
-        Display d = mWindowManager.getDefaultDisplay();
-        mPolicy = new PhoneWindowManager();
-        d.getMetrics(mMetrics);
-
         mInstaller = installer;
         mPackageDexOptimizer = new PackageDexOptimizer(this);
         mMoveCallbacks = new MoveCallbacks(FgThread.get().getLooper());
@@ -1876,7 +1865,6 @@ public class PackageManagerService extends IPackageManager.Stub {
         mGlobalGids = systemConfig.getGlobalGids();
         mSystemPermissions = systemConfig.getSystemPermissions();
         mAvailableFeatures = systemConfig.getAvailableFeatures();
-        mSignatureAllowances = systemConfig.getSignatureAllowances();
 
         synchronized (mInstallLock) {
         // writer
@@ -3357,7 +3345,6 @@ public class PackageManagerService extends IPackageManager.Stub {
         if (!compareStrings(pi1.nonLocalizedLabel, pi2.nonLocalizedLabel)) return false;
         // We'll take care of setting this one.
         if (!compareStrings(pi1.packageName, pi2.packageName)) return false;
-        if (pi1.allowViaWhitelist != pi2.allowViaWhitelist) return false;
         // These are not currently stored in settings.
         //if (!compareStrings(pi1.group, pi2.group)) return false;
         //if (!compareStrings(pi1.nonLocalizedDescription, pi2.nonLocalizedDescription)) return false;
@@ -3480,16 +3467,6 @@ public class PackageManagerService extends IPackageManager.Stub {
             throw new SecurityException("Permission " + bp.name
                     + " is not a changeable permission type");
         }
-    }
-
-    private boolean isAllowedSignature(PackageParser.Package pkg, String permissionName) {
-        for (Signature pkgSig : pkg.mSignatures) {
-            ArraySet<String> perms = mSignatureAllowances.get(pkgSig);
-            if (perms != null && perms.contains(permissionName)) {
-                return true;
-            }
-        }
-        return false;
     }
 
     @Override
@@ -3986,7 +3963,7 @@ public class PackageManagerService extends IPackageManager.Stub {
             return PackageManager.SIGNATURE_NO_MATCH;
         }
 
-        // Since both signature sets are of size 1, we can compare without ArraySets.
+        // Since both signature sets are of size 1, we can compare without HashSets.
         if (s1.length == 1) {
             return s1[0].equals(s2[0]) ?
                     PackageManager.SIGNATURE_MATCH :
@@ -6200,22 +6177,14 @@ public class PackageManagerService extends IPackageManager.Stub {
         if (DEBUG_DEXOPT) {
             Log.i(TAG, "Optimizing app " + curr + " of " + total + ": " + pkg.packageName);
         }
-        try {
-            // give the packagename to the PhoneWindowManager
-            ApplicationInfo ai;
+        if (!isFirstBoot()) {
             try {
-                ai = mContext.getPackageManager().getApplicationInfo(pkg.packageName, 0);
-            } catch (Exception e) {
-                ai = null;
+                ActivityManagerNative.getDefault().showBootMessage(
+                        mContext.getResources().getString(R.string.android_upgrading_apk,
+                                curr, total), true);
+            } catch (RemoteException e) {
             }
-            mPolicy.setPackageName((String) (ai != null ? mContext.getPackageManager().getApplicationLabel(ai) : pkg.packageName));
-
-            ActivityManagerNative.getDefault().showBootMessage(
-                    mContext.getResources().getString(R.string.android_upgrading_apk,
-                            curr, total), true);
-        } catch (RemoteException e) {
         }
-
         PackageParser.Package p = pkg;
         synchronized (mInstallLock) {
             mPackageDexOptimizer.performDexOpt(p, null /* instruction sets */,
@@ -7446,7 +7415,6 @@ public class PackageManagerService extends IPackageManager.Stub {
                             bp.perm = p;
                             bp.uid = pkg.applicationInfo.uid;
                             bp.sourcePackage = p.info.packageName;
-                            bp.allowViaWhitelist = p.info.allowViaWhitelist;
                             p.info.flags |= PermissionInfo.FLAG_INSTALLED;
                         } else if (!currentOwnerIsSystem) {
                             String msg = "New decl " + p.owner + " of permission  "
@@ -7460,7 +7428,6 @@ public class PackageManagerService extends IPackageManager.Stub {
                 if (bp == null) {
                     bp = new BasePermission(p.info.name, p.info.packageName,
                             BasePermission.TYPE_NORMAL);
-                    bp.allowViaWhitelist = p.info.allowViaWhitelist;
                     permissionMap.put(p.info.name, bp);
                 }
 
@@ -7474,7 +7441,6 @@ public class PackageManagerService extends IPackageManager.Stub {
                             bp.perm = p;
                             bp.uid = pkg.applicationInfo.uid;
                             bp.sourcePackage = p.info.packageName;
-                            bp.allowViaWhitelist = p.info.allowViaWhitelist;
                             p.info.flags |= PermissionInfo.FLAG_INSTALLED;
                             if ((parseFlags&PackageParser.PARSE_CHATTY) != 0) {
                                 if (r == null) {
@@ -8665,6 +8631,7 @@ public class PackageManagerService extends IPackageManager.Stub {
                 & PermissionInfo.PROTECTION_FLAG_PRIVILEGED) != 0) {
             if (isSystemApp(pkg)) {
                 // For updated system applications, a system permission
+                // is granted only if it had been defined by the original application.
                 if (pkg.isUpdatedSystemApp()) {
                     final PackageSetting sysPs = mSettings
                             .getDisabledSystemPkgLPr(pkg.packageName);
@@ -8731,9 +8698,6 @@ public class PackageManagerService extends IPackageManager.Stub {
                 // is granted only if it was already granted.
                 allowed = origPermissions.hasInstallPermission(perm);
             }
-        }
-        if (!allowed && bp.allowViaWhitelist) {
-            allowed = isAllowedSignature(pkg, perm);
         }
         return allowed;
     }
@@ -9549,7 +9513,6 @@ public class PackageManagerService extends IPackageManager.Stub {
     public void installPackage(String originPath, IPackageInstallObserver2 observer,
             int installFlags, String installerPackageName, VerificationParams verificationParams,
             String packageAbiOverride) {
-        android.util.SeempLog.record(113);
         installPackageAsUser(originPath, observer, installFlags, installerPackageName,
                 verificationParams, packageAbiOverride, UserHandle.getCallingUserId());
     }

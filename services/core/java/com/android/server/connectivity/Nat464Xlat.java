@@ -31,7 +31,6 @@ import android.os.Handler;
 import android.os.Message;
 import android.os.INetworkManagementService;
 import android.os.RemoteException;
-import android.os.SystemProperties;
 import android.util.Slog;
 
 import com.android.server.net.BaseNetworkObserver;
@@ -91,12 +90,7 @@ public class Nat464Xlat extends BaseNetworkObserver {
                 (nai.linkProperties != null) ? nai.linkProperties.hasIPv4Address() : false;
         // Only support clat on mobile and wifi for now, because these are the only IPv6-only
         // networks we can connect to.
-        boolean doXlat = SystemProperties.getBoolean("persist.net.doxlat",true);
-        if(!doXlat) {
-            Slog.i(TAG, "Android Xlat is disabled");
-        }
-        return connected && !hasIPv4Address && (((netType == TYPE_MOBILE) && doXlat )
-                                              || netType == TYPE_WIFI);
+        return connected && !hasIPv4Address && (netType == TYPE_MOBILE || netType == TYPE_WIFI);
     }
 
     /**

@@ -43,9 +43,6 @@ public class WifiChannel implements Parcelable {
     /** is it a DFS channel? */
     public boolean isDFS;
 
-    /** is IBSS allowed? */
-    public boolean ibssAllowed;
-
     /** public constructor */
     public WifiChannel() { }
 
@@ -68,7 +65,6 @@ public class WifiChannel implements Parcelable {
         out.writeInt(freqMHz);
         out.writeInt(channelNum);
         out.writeInt(isDFS ? 1 : 0);
-        out.writeInt(ibssAllowed ? 1 : 0);
     }
 
     /** implement Parcelable interface */
@@ -80,7 +76,6 @@ public class WifiChannel implements Parcelable {
             channel.freqMHz = in.readInt();
             channel.channelNum = in.readInt();
             channel.isDFS = in.readInt() != 0;
-            channel.ibssAllowed = in.readInt() != 0;
             return channel;
         }
 

@@ -25,6 +25,7 @@ import android.content.Context;
 import android.os.Parcel;
 import android.os.Parcelable;
 import android.os.ParcelUuid;
+import android.os.Process;
 import android.os.RemoteException;
 import android.util.Log;
 
@@ -823,6 +824,9 @@ public final class BluetoothDevice implements Parcelable {
             return false;
         }
         try {
+            Log.i(TAG, "createBond() for device " + getAddress() +
+                    " called by pid: " + Process.myPid() +
+                    " tid: " + Process.myTid());
             return sService.createBond(this, TRANSPORT_AUTO);
         } catch (RemoteException e) {Log.e(TAG, "", e);}
         return false;
@@ -854,6 +858,9 @@ public final class BluetoothDevice implements Parcelable {
             throw new IllegalArgumentException(transport + " is not a valid Bluetooth transport");
         }
         try {
+            Log.i(TAG, "createBond() for device " + getAddress() +
+                    " called by pid: " + Process.myPid() +
+                    " tid: " + Process.myTid());
             return sService.createBond(this, transport);
         } catch (RemoteException e) {Log.e(TAG, "", e);}
         return false;
@@ -922,6 +929,9 @@ public final class BluetoothDevice implements Parcelable {
             return false;
         }
         try {
+            Log.i(TAG, "cancelBondProcess() for device " + getAddress() +
+                    " called by pid: " + Process.myPid() +
+                    " tid: " + Process.myTid());
             return sService.cancelBondProcess(this);
         } catch (RemoteException e) {Log.e(TAG, "", e);}
         return false;
@@ -943,6 +953,9 @@ public final class BluetoothDevice implements Parcelable {
             return false;
         }
         try {
+            Log.i(TAG, "removeBond() for device " + getAddress() +
+                    " called by pid: " + Process.myPid() +
+                    " tid: " + Process.myTid());
             return sService.removeBond(this);
         } catch (RemoteException e) {Log.e(TAG, "", e);}
         return false;
@@ -1386,27 +1399,6 @@ public final class BluetoothDevice implements Parcelable {
      */
     public BluetoothSocket createL2capSocket(int channel) throws IOException {
         return new BluetoothSocket(BluetoothSocket.TYPE_L2CAP, -1, true, true, this, channel,
-                null);
-    }
-
-    /**
-     * Create an L2cap {@link BluetoothSocket} ready to start an insecure
-     * outgoing connection to this remote device on given channel.
-     * <p>The remote device will be not authenticated and communication on this
-     * socket will not be encrypted.
-     * <p>Use {@link BluetoothSocket#connect} to initiate the outgoing
-     * connection.
-     * <p>Valid L2CAP PSM channels are in range 1 to 2^16.
-     * <p>Requires {@link android.Manifest.permission#BLUETOOTH}
-     *
-     * @param channel L2cap PSM/channel to connect to
-     * @return a RFCOMM BluetoothServerSocket ready for an outgoing connection
-     * @throws IOException on error, for example Bluetooth not available, or
-     *                     insufficient permissions
-     * @hide
-     */
-    public BluetoothSocket createInsecureL2capSocket(int channel) throws IOException {
-        return new BluetoothSocket(BluetoothSocket.TYPE_L2CAP, -1, false, false, this, channel,
                 null);
     }
 

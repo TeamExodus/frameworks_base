@@ -26,7 +26,6 @@ import android.net.NetworkQuotaInfo;
 import android.net.NetworkRequest;
 import android.net.NetworkState;
 import android.net.ProxyInfo;
-import android.net.wifi.WifiDevice;
 import android.os.IBinder;
 import android.os.Messenger;
 import android.os.ParcelFileDescriptor;
@@ -36,8 +35,6 @@ import com.android.internal.net.LegacyVpnInfo;
 import com.android.internal.net.VpnConfig;
 import com.android.internal.net.VpnInfo;
 import com.android.internal.net.VpnProfile;
-
-import java.util.List;
 
 /**
  * Interface that answers queries about, and allows changing, the
@@ -94,8 +91,6 @@ interface IConnectivityManager
     String[] getTetherableBluetoothRegexs();
 
     int setUsbTethering(boolean enable);
-
-    List<WifiDevice> getTetherConnectedSta();
 
     void reportInetCondition(int networkType, int percentage);
 

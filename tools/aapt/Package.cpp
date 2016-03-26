@@ -28,13 +28,12 @@ static const char* kExcludeExtension = ".EXCLUDE";
 
 /* these formats are already compressed, or don't compress well */
 static const char* kNoCompressExt[] = {
-    ".jpg", ".jpeg", ".png", ".gif", ".qmg", ".wbp",
+    ".jpg", ".jpeg", ".png", ".gif",
     ".wav", ".mp2", ".mp3", ".ogg", ".aac",
     ".mpg", ".mpeg", ".mid", ".midi", ".smf", ".jet",
     ".rtttl", ".imy", ".xmf", ".mp4", ".m4a",
     ".m4v", ".3gp", ".3gpp", ".3g2", ".3gpp2",
-    ".amr", ".awb", ".wma", ".wmv",
-    ".arsc"
+    ".amr", ".awb", ".wma", ".wmv"
 };
 
 /* fwd decls, so I can write this downward */

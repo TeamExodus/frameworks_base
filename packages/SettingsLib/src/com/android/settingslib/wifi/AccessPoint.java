@@ -640,7 +640,12 @@ public class AccessPoint implements Comparable<AccessPoint> {
         } else if (config != null) {
             return matches(config);
         }
-        return false;
+        else {
+            // Might be an ephemeral connection with no WifiConfiguration. Try matching on SSID.
+            // (Note that we only do this if the WifiConfiguration explicitly equals INVALID).
+            // TODO: Handle hex string SSIDs.
+            return ssid.equals(removeDoubleQuotes(info.getSSID()));
+        }
     }
 
     public boolean isSaved() {

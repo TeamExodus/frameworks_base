@@ -227,13 +227,6 @@ public abstract class Connection extends Conferenceable {
     public static final int CAPABILITY_CAN_PAUSE_VIDEO = 0x00100000;
 
     /**
-     * Add participant in an active or conference call option
-     *
-     * @hide
-     */
-    public static final int CAPABILITY_ADD_PARTICIPANT = 0x02000000;
-
-    /**
      * For a conference, indicates the conference will not have child connections.
      * <p>
      * An example of a conference with child connections is a GSM conference call, where the radio
@@ -254,26 +247,16 @@ public abstract class Connection extends Conferenceable {
      * @hide
      */
     public static final int CAPABILITY_CONFERENCE_HAS_NO_CHILDREN = 0x00200000;
-    /**
-      * Call has voice privacy capability.
-      * @hide
-      */
-    public static final int CAPABILITY_VOICE_PRIVACY = 0x00400000;
 
     /**
-     * Local device supports voice telephony.
+     * Indicates that the connection itself wants to handle any sort of reply response, rather than
+     * relying on SMS.
      * @hide
      */
-    public static final int CAPABILITY_SUPPORTS_DOWNGRADE_TO_VOICE_LOCAL = 0x00800000;
-
-    /**
-      * Remote device supports voice telephony.
-      * @hide
-      */
-    public static final int CAPABILITY_SUPPORTS_DOWNGRADE_TO_VOICE_REMOTE = 0x01000000;
+    public static final int CAPABILITY_CAN_SEND_RESPONSE_VIA_CONNECTION = 0x00400000;
 
     //**********************************************************************************************
-    // Next CAPABILITY value: 0x04000000
+    // Next CAPABILITY value: 0x00800000
     //**********************************************************************************************
 
     /**
@@ -298,13 +281,6 @@ public abstract class Connection extends Conferenceable {
      * {@link PhoneAccount} supports the capability {@link PhoneAccount#CAPABILITY_CALL_SUBJECT}.
      */
     public static final String EXTRA_CALL_SUBJECT = "android.telecom.extra.CALL_SUBJECT";
-
-    /**
-     * Call extras key to pack/unpack call history info.
-     * The value for this key should be an ArrayList of Strings.
-     * @hide
-     */
-    public static final String EXTRA_CALL_HISTORY_INFO = "EXTRA_CALL_HISTORY_INFO";
 
     // Flag controlling whether PII is emitted into the logs
     private static final boolean PII_DEBUG = Log.isLoggable(android.util.Log.DEBUG);
@@ -395,12 +371,6 @@ public abstract class Connection extends Conferenceable {
         if (can(capabilities, CAPABILITY_SUPPORTS_VT_REMOTE_BIDIRECTIONAL)) {
             builder.append(" CAPABILITY_SUPPORTS_VT_REMOTE_BIDIRECTIONAL");
         }
-        if (can(capabilities, CAPABILITY_SUPPORTS_DOWNGRADE_TO_VOICE_LOCAL)) {
-            builder.append(" CAPABILITY_SUPPORTS_DOWNGRADE_TO_VOICE_LOCAL");
-        }
-        if (can(capabilities, CAPABILITY_SUPPORTS_DOWNGRADE_TO_VOICE_REMOTE)) {
-            builder.append(" CAPABILITY_SUPPORTS_DOWNGRADE_TO_VOICE_REMOTE");
-        }
         if (can(capabilities, CAPABILITY_HIGH_DEF_AUDIO)) {
             builder.append(" CAPABILITY_HIGH_DEF_AUDIO");
         }
@@ -425,6 +395,10 @@ public abstract class Connection extends Conferenceable {
         if (can(capabilities, CAPABILITY_CONFERENCE_HAS_NO_CHILDREN)) {
             builder.append(" CAPABILITY_SINGLE_PARTY_CONFERENCE");
         }
+        if (can(capabilities, CAPABILITY_CAN_SEND_RESPONSE_VIA_CONNECTION)) {
+            builder.append(" CAPABILITY_CAN_SEND_RESPONSE_VIA_CONNECTION");
+        }
+
         builder.append("]");
         return builder.toString();
     }
@@ -455,7 +429,6 @@ public abstract class Connection extends Conferenceable {
         public void onConferenceStarted() {}
         public void onConferenceMergeFailed(Connection c) {}
         public void onExtrasChanged(Connection c, Bundle extras) {}
-        public void onCdmaConnectionTimeReset(Connection c) {}
     }
 
     /**
@@ -1620,16 +1593,6 @@ public abstract class Connection extends Conferenceable {
     }
 
     /**
-       *@hide
-       * Resets the cdma connection time.
-       */
-    public final void resetCdmaConnectionTime() {
-        for (Listener l : mListeners) {
-            l.onCdmaConnectionTimeReset(this);
-        }
-    }
-
-    /**
      * Returns the connections or conferences with which this connection can be conferenced.
      */
     public final List<Conferenceable> getConferenceables() {
@@ -1755,12 +1718,6 @@ public abstract class Connection extends Conferenceable {
     public void onStopDtmfTone() {}
 
     /**
-     * Notifies this to set local call hold.
-     * {@hide}
-     */
-    public void setLocalCallHold(boolean lchState) {}
-
-    /**
      * Notifies this Connection of a request to disconnect.
      */
     public void onDisconnect() {}
@@ -1815,6 +1772,20 @@ public abstract class Connection extends Conferenceable {
      * a request to reject.
      */
     public void onReject() {}
+
+    /**
+     * Notifies ths Connection of a request reject with a message.
+     *
+     * @hide
+     */
+    public void onReject(String replyMessage) {}
+
+    /**
+     * Notifies the Connection of a request to silence the ringer.
+     *
+     * @hide
+     */
+    public void onSilence() {}
 
     /**
      * Notifies this Connection whether the user wishes to proceed with the post-dial DTMF codes.

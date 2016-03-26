@@ -1163,11 +1163,6 @@ public interface WindowManagerPolicy {
     public void systemBooted();
 
     /**
-     * name of package being worked on during boot time message
-     */
-    public void setPackageName(String pkgName);
-
-    /**
      * Show boot time message to the user.
      */
     public void showBootMessage(final CharSequence msg, final boolean always);
@@ -1242,12 +1237,6 @@ public interface WindowManagerPolicy {
      * Specifies whether there is an on-screen navigation bar separate from the status bar.
      */
     public boolean hasNavigationBar();
-    public boolean hasPermanentMenuKey();
-
-    /**
-     * Specifies whether the device needs a navigation bar (because it has no hardware buttons)
-     */
-    public boolean needsNavigationBar();
 
     /**
      * Lock the device now.

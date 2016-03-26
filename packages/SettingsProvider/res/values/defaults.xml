@@ -25,6 +25,7 @@
     <!-- Comma-separated list of bluetooth, wifi, and cell. -->
     <string name="def_airplane_mode_radios" translatable="false">cell,bluetooth,wifi,nfc,wimax</string>
     <string name="airplane_mode_toggleable_radios" translatable="false">bluetooth,wifi,nfc</string>
+    <string name="def_bluetooth_disabled_profiles" translatable="false">0</string>
     <bool name="def_auto_time">true</bool>
     <bool name="def_auto_time_zone">true</bool>
     <bool name="def_accelerometer_rotation">true</bool>
@@ -212,12 +213,4 @@
 
     <!-- Default for Settings.Secure.NFC_PAYMENT_COMPONENT -->
     <string name="def_nfc_payment_component"></string>
-
-
-    <!-- Default for Settings.Global.CAPTIVE_PORTAL_DETECTION_ENABLED -->
-    <integer name="def_captive_portal_detection_enabled" translatable="false">1</integer>
-
-    <!-- Defaults for Settings.System.DEV_FORCE_SHOW_NAVBAR. -->
-    <integer name="def_force_disable_navkeys">0</integer>
-
 </resources>

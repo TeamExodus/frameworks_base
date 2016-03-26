@@ -32,8 +32,6 @@
 #include <utils/NativeHandle.h>
 #include <hardware/tv_input.h>
 
-#include <jni/TvInputHalExtensions.h>
-
 namespace android {
 
 static struct {
@@ -73,6 +71,37 @@ static struct {
 
 ////////////////////////////////////////////////////////////////////////////////
 
+class BufferProducerThread : public Thread {
+public:
+    BufferProducerThread(tv_input_device_t* device, int deviceId, const tv_stream_t* stream);
+
+    virtual status_t readyToRun();
+
+    void setSurface(const sp<Surface>& surface);
+    void onCaptured(uint32_t seq, bool succeeded);
+    void shutdown();
+
+private:
+    Mutex mLock;
+    Condition mCondition;
+    sp<Surface> mSurface;
+    tv_input_device_t* mDevice;
+    int mDeviceId;
+    tv_stream_t mStream;
+    sp<ANativeWindowBuffer_t> mBuffer;
+    enum {
+        CAPTURING,
+        CAPTURED,
+        RELEASED,
+    } mBufferState;
+    uint32_t mSeq;
+    bool mShutdown;
+
+    virtual bool threadLoop();
+
+    void setSurfaceLocked(const sp<Surface>& surface);
+};
+
 BufferProducerThread::BufferProducerThread(
         tv_input_device_t* device, int deviceId, const tv_stream_t* stream)
     : Thread(false),
@@ -103,14 +132,14 @@ status_t BufferProducerThread::readyToRun() {
     return NO_ERROR;
 }
 
-int BufferProducerThread::setSurface(const sp<Surface>& surface) {
+void BufferProducerThread::setSurface(const sp<Surface>& surface) {
     Mutex::Autolock autoLock(&mLock);
-    return setSurfaceLocked(surface);
+    setSurfaceLocked(surface);
 }
 
-int BufferProducerThread::setSurfaceLocked(const sp<Surface>& surface) {
+void BufferProducerThread::setSurfaceLocked(const sp<Surface>& surface) {
     if (surface == mSurface) {
-        return NO_ERROR;
+        return;
     }
 
     if (mBufferState == CAPTURING) {
@@ -128,8 +157,6 @@ int BufferProducerThread::setSurfaceLocked(const sp<Surface>& surface) {
 
     mSurface = surface;
     mCondition.broadcast();
-
-    return NO_ERROR;
 }
 
 void BufferProducerThread::onCaptured(uint32_t seq, bool succeeded) {
@@ -363,37 +390,15 @@ int JTvInputHal::addOrUpdateStream(int deviceId, int streamId, const sp<Surface>
             if (connection.mThread != NULL) {
                 connection.mThread->shutdown();
             }
-
-            connection.mThread = TvInputHalFactory::get()->createBufferProducerThread(mDevice, deviceId, &stream);
-            if (connection.mThread == NULL) {
-                ALOGE("No memory for BufferProducerThread");
-
-                // clean up
-                if (mDevice->close_stream(mDevice, deviceId, streamId) != 0) {
-                    ALOGE("Couldn't remove stream");
-                }
-                return NO_MEMORY;
-            }
+            connection.mThread = new BufferProducerThread(mDevice, deviceId, &stream);
+            connection.mThread->run();
         }
     }
     connection.mSurface = surface;
     if (connection.mStreamType == TV_STREAM_TYPE_INDEPENDENT_VIDEO_SOURCE) {
         connection.mSurface->setSidebandStream(connection.mSourceHandle);
     } else if (connection.mStreamType == TV_STREAM_TYPE_BUFFER_PRODUCER) {
-        if (NO_ERROR != connection.mThread->setSurface(surface))
-        {
-            ALOGE("failed to setSurface");
-            // clean up
-            connection.mThread.clear();
-            if (mDevice->close_stream(mDevice, deviceId, streamId) != 0) {
-                ALOGE("Couldn't remove stream");
-            }
-            if (connection.mSurface != NULL) {
-                connection.mSurface.clear();
-            }
-            return UNKNOWN_ERROR;
-        }
-        connection.mThread->run();
+        connection.mThread->setSurface(surface);
     }
     return NO_ERROR;
 }
@@ -408,6 +413,13 @@ int JTvInputHal::removeStream(int deviceId, int streamId) {
         // Nothing to do
         return NO_ERROR;
     }
+    if (Surface::isValid(connection.mSurface)) {
+        connection.mSurface.clear();
+    }
+    if (connection.mSurface != NULL) {
+        connection.mSurface->setSidebandStream(NULL);
+        connection.mSurface.clear();
+    }
     if (connection.mThread != NULL) {
         connection.mThread->shutdown();
         connection.mThread.clear();
@@ -418,13 +430,6 @@ int JTvInputHal::removeStream(int deviceId, int streamId) {
     }
     if (connection.mSourceHandle != NULL) {
         connection.mSourceHandle.clear();
-    }
-    if (Surface::isValid(connection.mSurface)) {
-        connection.mSurface.clear();
-    }
-    if (connection.mSurface != NULL) {
-        connection.mSurface->setSidebandStream(NULL);
-        connection.mSurface.clear();
     }
     return NO_ERROR;
 }

@@ -29,7 +29,6 @@ LOCAL_CFLAGS += -DGL_GLEXT_PROTOTYPES -DEGL_EGLEXT_PROTOTYPES
 LOCAL_CFLAGS += -DU_USING_ICU_NAMESPACE=0
 
 LOCAL_SRC_FILES:= \
-    android_util_SeempLog.cpp \
     AndroidRuntime.cpp \
     com_android_internal_content_NativeLibraryHelper.cpp \
     com_google_android_gles_jni_EGLImpl.cpp \
@@ -175,8 +174,7 @@ LOCAL_SRC_FILES:= \
     com_android_internal_net_NetworkStatsFactory.cpp \
     com_android_internal_os_Zygote.cpp \
     com_android_internal_util_VirtualRefBasePtr.cpp \
-    com_android_internal_view_animation_NativeInterpolatorFactoryHelper.cpp \
-    com_android_internal_app_ActivityTrigger.cpp
+    com_android_internal_view_animation_NativeInterpolatorFactoryHelper.cpp
 
 LOCAL_C_INCLUDES += \
     $(JNI_H_INCLUDE) \

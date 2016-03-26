@@ -159,6 +159,7 @@ public class SettingsBackupAgent extends BackupAgentHelper {
         String key_mgmt = "";
         boolean certUsed = false;
         boolean hasWepKey = false;
+        boolean isEap = false;
         final ArrayList<String> rawLines = new ArrayList<String>();
 
         public static Network readFromStream(BufferedReader in) {
@@ -189,6 +190,9 @@ public class SettingsBackupAgent extends BackupAgentHelper {
                 ssid = line;
             } else if (line.startsWith("key_mgmt=")) {
                 key_mgmt = line;
+                if (line.contains("EAP")) {
+                    isEap = true;
+                }
             } else if (line.startsWith("client_cert=")) {
                 certUsed = true;
             } else if (line.startsWith("ca_cert=")) {
@@ -197,6 +201,8 @@ public class SettingsBackupAgent extends BackupAgentHelper {
                 certUsed = true;
             } else if (line.startsWith("wep_")) {
                 hasWepKey = true;
+            } else if (line.startsWith("eap=")) {
+                isEap = true;
             }
         }
 
@@ -255,13 +261,13 @@ public class SettingsBackupAgent extends BackupAgentHelper {
             // Now build the canonical config key paralleling the WifiConfiguration semantics
             final String key;
             if (types.get(KeyMgmt.WPA_PSK)) {
-                key = bareSsid + "-" + KeyMgmt.strings[KeyMgmt.WPA_PSK];
+                key = bareSsid + KeyMgmt.strings[KeyMgmt.WPA_PSK];
             } else if (types.get(KeyMgmt.WPA_EAP) || types.get(KeyMgmt.IEEE8021X)) {
-                key = bareSsid + "-" + KeyMgmt.strings[KeyMgmt.WPA_EAP];
+                key = bareSsid + KeyMgmt.strings[KeyMgmt.WPA_EAP];
             } else if (hasWepKey) {
-                key = bareSsid + "-WEP";  // hardcoded this way in WifiConfiguration
+                key = bareSsid + "WEP";  // hardcoded this way in WifiConfiguration
             } else {
-                key = bareSsid + "-" + KeyMgmt.strings[KeyMgmt.NONE];
+                key = bareSsid + KeyMgmt.strings[KeyMgmt.NONE];
             }
             return key;
         }
@@ -325,6 +331,13 @@ public class SettingsBackupAgent extends BackupAgentHelper {
                                     continue;
                                 }
                             }
+                            // Don't propagate EAP network definitions
+                            if (net.isEap) {
+                                if (DEBUG_BACKUP) {
+                                    Log.v(TAG, "Skipping EAP network " + net.ssid + " / " + net.key_mgmt);
+                                }
+                                continue;
+                            }
                             if (! mKnownNetworks.contains(net)) {
                                 if (DEBUG_BACKUP) {
                                     Log.v(TAG, "Adding " + net.ssid + " / " + net.key_mgmt);
@@ -350,6 +363,12 @@ public class SettingsBackupAgent extends BackupAgentHelper {
                     // Networks that use certificates for authentication can't be restored
                     // because the certificates they need don't get restored (because they
                     // are stored in keystore, and can't be restored)
+                    continue;
+                }
+
+                if (net.isEap) {
+                    // Similarly, omit EAP network definitions to avoid propagating
+                    // controlled enterprise network definitions.
                     continue;
                 }
 

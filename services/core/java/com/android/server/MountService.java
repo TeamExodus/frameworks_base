@@ -2400,7 +2400,7 @@ class MountService extends IMountService.Stub
         }
     }
 
-    private int encryptStorageExtended(int type, String password, boolean wipe) {
+    public int encryptStorage(int type, String password) {
         if (TextUtils.isEmpty(password) && type != StorageManager.CRYPT_TYPE_DEFAULT) {
             throw new IllegalArgumentException("password cannot be empty");
         }
@@ -2416,10 +2416,10 @@ class MountService extends IMountService.Stub
 
         try {
             if (type == StorageManager.CRYPT_TYPE_DEFAULT) {
-                mCryptConnector.execute("cryptfs", "enablecrypto", wipe ? "wipe" : "inplace",
+                mCryptConnector.execute("cryptfs", "enablecrypto", "inplace",
                                 CRYPTO_TYPES[type]);
             } else {
-                mCryptConnector.execute("cryptfs", "enablecrypto", wipe ? "wipe" : "inplace",
+                mCryptConnector.execute("cryptfs", "enablecrypto", "inplace",
                                 CRYPTO_TYPES[type], new SensitiveArg(password));
             }
         } catch (NativeDaemonConnectorException e) {
@@ -2428,22 +2428,6 @@ class MountService extends IMountService.Stub
         }
 
         return 0;
-    }
-
-    /** Encrypt Storage given a password.
-     *  @param type The password type.
-     *  @param password The password to be used in encryption.
-     */
-    public int encryptStorage(int type, String password) {
-        return encryptStorageExtended(type, password, false);
-    }
-
-    /** Encrypt Storage given a password after wiping it.
-     *  @param type The password type.
-     *  @param password The password to be used in encryption.
-     */
-    public int encryptWipeStorage(int type, String password) {
-        return encryptStorageExtended(type, password, true);
     }
 
     /** Set the password for encrypting the master key.
@@ -2460,13 +2444,9 @@ class MountService extends IMountService.Stub
             Slog.i(TAG, "changing encryption password...");
         }
 
-        LockSettingsService lockSettings = new LockSettingsService(mContext);
-        String currentPassword = lockSettings.getPassword();
-
         try {
             NativeDaemonEvent event = mCryptConnector.execute("cryptfs", "changepw", CRYPTO_TYPES[type],
-                        new SensitiveArg(currentPassword), new SensitiveArg(password));
-            lockSettings.sanitizePassword();
+                        new SensitiveArg(password));
             return Integer.parseInt(event.getMessage());
         } catch (NativeDaemonConnectorException e) {
             // Encryption failed

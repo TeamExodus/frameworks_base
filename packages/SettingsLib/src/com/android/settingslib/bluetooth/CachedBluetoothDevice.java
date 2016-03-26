@@ -135,8 +135,6 @@ public final class CachedBluetoothDevice implements Comparable<CachedBluetoothDe
         if (newProfileState == BluetoothProfile.STATE_CONNECTED) {
             if (profile instanceof MapProfile) {
                 profile.setPreferred(mDevice, true);
-                mRemovedProfiles.remove(profile);
-                mProfiles.add(profile);
             } else if (!mProfiles.contains(profile)) {
                 mRemovedProfiles.remove(profile);
                 mProfiles.add(profile);
@@ -149,8 +147,6 @@ public final class CachedBluetoothDevice implements Comparable<CachedBluetoothDe
         } else if (profile instanceof MapProfile &&
                 newProfileState == BluetoothProfile.STATE_DISCONNECTED) {
             profile.setPreferred(mDevice, false);
-            mProfiles.remove(profile);
-            mRemovedProfiles.add(profile);
         } else if (mLocalNapRoleConnected && profile instanceof PanProfile &&
                 ((PanProfile) profile).isLocalRoleNap(mDevice) &&
                 newProfileState == BluetoothProfile.STATE_DISCONNECTED) {
@@ -525,29 +521,7 @@ public final class CachedBluetoothDevice implements Comparable<CachedBluetoothDe
      * Refreshes the UI when framework alerts us of a UUID change.
      */
     void onUuidChanged() {
-        Log.d(TAG, " onUuidChanged, mProfile Size " + mProfiles.size());
-        List<LocalBluetoothProfile> mPrevProfiles =
-                new ArrayList<LocalBluetoothProfile>();
-        mPrevProfiles.clear();
-        mPrevProfiles.addAll(mProfiles);
         updateProfiles();
-        /*
-         * Check if new profiles are added
-         */
-        if ((mPrevProfiles.containsAll(mProfiles)) && (!mPrevProfiles.isEmpty())) {
-            Log.d(TAG,"UUID not udpated, returning");
-            mProfiles.clear();
-            mProfiles.addAll(mPrevProfiles);
-            return;
-        }
-        for (int i = 0; i<mProfiles.size(); ++i) {
-            if (!mPrevProfiles.contains(mProfiles.get(i))) {
-                mPrevProfiles.add(mProfiles.get(i));
-            }
-        }
-        mProfiles.clear();
-        mProfiles.addAll(mPrevProfiles);
-
         ParcelUuid[] uuids = mDevice.getUuids();
 
         long timeout = MAX_UUID_DELAY_FOR_AUTO_CONNECT;
@@ -834,7 +808,12 @@ public final class CachedBluetoothDevice implements Comparable<CachedBluetoothDe
             // The pairing dialog now warns of phone-book access for paired devices.
             // No separate prompt is displayed after pairing.
             if (getPhonebookPermissionChoice() == CachedBluetoothDevice.ACCESS_UNKNOWN) {
-                setPhonebookPermissionChoice(CachedBluetoothDevice.ACCESS_ALLOWED);
+                if (mDevice.getBluetoothClass().getDeviceClass()
+                        == BluetoothClass.Device.AUDIO_VIDEO_HANDSFREE) {
+                    setPhonebookPermissionChoice(CachedBluetoothDevice.ACCESS_ALLOWED);
+                } else {
+                    setPhonebookPermissionChoice(CachedBluetoothDevice.ACCESS_REJECTED);
+                }
             }
         }
     }
@@ -872,8 +851,7 @@ public final class CachedBluetoothDevice implements Comparable<CachedBluetoothDe
 
                 case BluetoothProfile.STATE_DISCONNECTED:
                     if (profile.isProfileReady()) {
-                        if ((profile instanceof A2dpProfile)||
-                            (profile instanceof A2dpSinkProfile)){
+                        if (profile instanceof A2dpProfile) {
                             a2dpNotConnected = true;
                         } else if (profile instanceof HeadsetProfile) {
                             headsetNotConnected = true;

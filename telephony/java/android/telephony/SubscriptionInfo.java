@@ -111,14 +111,9 @@ public class SubscriptionInfo implements Parcelable {
     /**
      * @hide
      */
-    public int mUserNwMode;
-
-    /**
-     * @hide
-     */
     public SubscriptionInfo(int id, String iccId, int simSlotIndex, CharSequence displayName,
             CharSequence carrierName, int nameSource, int iconTint, String number, int roaming,
-            Bitmap icon, int mcc, int mnc, String countryIso, int userNwMode) {
+            Bitmap icon, int mcc, int mnc, String countryIso) {
         this.mId = id;
         this.mIccId = iccId;
         this.mSimSlotIndex = simSlotIndex;
@@ -131,7 +126,6 @@ public class SubscriptionInfo implements Parcelable {
         this.mIconBitmap = icon;
         this.mMcc = mcc;
         this.mMnc = mnc;
-        this.mUserNwMode = userNwMode;
         this.mCountryIso = countryIso;
     }
 
@@ -283,14 +277,6 @@ public class SubscriptionInfo implements Parcelable {
     }
 
     /**
-     * Returns the User set Network mode.
-     * @hide
-     */
-    public int getUserNwMode() {
-        return this.mUserNwMode;
-    }
-
-    /**
      * @return the ISO country code
      */
     public String getCountryIso() {
@@ -311,12 +297,11 @@ public class SubscriptionInfo implements Parcelable {
             int dataRoaming = source.readInt();
             int mcc = source.readInt();
             int mnc = source.readInt();
-            int userNwMode = source.readInt();
             String countryIso = source.readString();
             Bitmap iconBitmap = Bitmap.CREATOR.createFromParcel(source);
 
             return new SubscriptionInfo(id, iccId, simSlotIndex, displayName, carrierName,
-                    nameSource, iconTint, number, dataRoaming, iconBitmap, mcc, mnc, countryIso, userNwMode);
+                    nameSource, iconTint, number, dataRoaming, iconBitmap, mcc, mnc, countryIso);
         }
 
         @Override
@@ -338,7 +323,6 @@ public class SubscriptionInfo implements Parcelable {
         dest.writeInt(mDataRoaming);
         dest.writeInt(mMcc);
         dest.writeInt(mMnc);
-        dest.writeInt(mUserNwMode);
         dest.writeString(mCountryIso);
         mIconBitmap.writeToParcel(dest, flags);
     }
@@ -370,6 +354,6 @@ public class SubscriptionInfo implements Parcelable {
                 + " displayName=" + mDisplayName + " carrierName=" + mCarrierName
                 + " nameSource=" + mNameSource + " iconTint=" + mIconTint
                 + " dataRoaming=" + mDataRoaming + " iconBitmap=" + mIconBitmap + " mcc " + mMcc
-                + " mnc " + mMnc + " mUserNwMode=" + mUserNwMode + "}";
+                + " mnc " + mMnc + "}";
     }
 }

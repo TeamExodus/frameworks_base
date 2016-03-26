@@ -47,7 +47,7 @@ import java.util.List;
 public final class BluetoothHeadset implements BluetoothProfile {
     private static final String TAG = "BluetoothHeadset";
     private static final boolean DBG = true;
-    private static final boolean VDBG = true;
+    private static final boolean VDBG = false;
 
     /**
      * Intent used to broadcast the change in connection state of the Headset
@@ -129,13 +129,6 @@ public final class BluetoothHeadset implements BluetoothProfile {
             "android.bluetooth.headset.action.VENDOR_SPECIFIC_HEADSET_EVENT";
 
     /**
-     * @hide Broadcast intent when HF indicator value changed is updated by HS.
-     */
-    @SdkConstant(SdkConstantType.BROADCAST_INTENT_ACTION)
-    public static final String ACTION_HF_INDICATOR_VALUE_CHANGED =
-            "codeaurora.bluetooth.headset.action.ACTION_HF_INDICATOR_VALUE_CHANGED";
-
-    /**
      * A String extra field in {@link #ACTION_VENDOR_SPECIFIC_HEADSET_EVENT}
      * intents that contains the name of the vendor-specific command.
      */
@@ -204,20 +197,6 @@ public final class BluetoothHeadset implements BluetoothProfile {
      * A vendor-specific command for unsolicited result code.
      */
     public static final String VENDOR_RESULT_CODE_COMMAND_ANDROID = "+ANDROID";
-
-    /**
-     * @hide Used for sharing the HF indicator assigned number.
-     */
-    public static final String HF_INDICATOR_ASSIGNED_NUMBER  =
-            "codeaurora.bluetooth.headset.intent.category.anum";
-
-
-    /**
-     * @hide Used for sharing the HF indicator assigned number's value.
-     */
-    public static final String HF_INDICATOR_ASSIGNED_NUMBER_VALUE  =
-            "codeaurora.bluetooth.headset.intent.category.anumvalue";
-
 
     /**
      * Headset state when SCO audio is not connected.
@@ -703,6 +682,48 @@ public final class BluetoothHeadset implements BluetoothProfile {
             if (DBG) Log.d(TAG, Log.getStackTraceString(new Throwable()));
         }
         return BluetoothHeadset.STATE_AUDIO_DISCONNECTED;
+    }
+
+    /**
+     * Sets whether audio routing is allowed. When set to {@code false}, the AG will not route any
+     * audio to the HF unless explicitly told to.
+     * This method should be used in cases where the SCO channel is shared between multiple profiles
+     * and must be delegated by a source knowledgeable
+     * Note: This is an internal function and shouldn't be exposed
+     *
+     * @param allowed {@code true} if the profile can reroute audio, {@code false} otherwise.
+     *
+     * @hide
+     */
+    public void setAudioRouteAllowed(boolean allowed) {
+        if (VDBG) log("setAudioRouteAllowed");
+        if (mService != null && isEnabled()) {
+            try {
+                mService.setAudioRouteAllowed(allowed);
+            } catch (RemoteException e) {Log.e(TAG, e.toString());}
+        } else {
+            Log.w(TAG, "Proxy not attached to service");
+            if (DBG) Log.d(TAG, Log.getStackTraceString(new Throwable()));
+        }
+    }
+
+    /**
+     * Returns whether audio routing is allowed. see {@link #setAudioRouteAllowed(boolean)}.
+     * Note: This is an internal function and shouldn't be exposed
+     *
+     * @hide
+     */
+    public boolean getAudioRouteAllowed() {
+        if (VDBG) log("getAudioRouteAllowed");
+        if (mService != null && isEnabled()) {
+            try {
+                return mService.getAudioRouteAllowed();
+            } catch (RemoteException e) {Log.e(TAG, e.toString());}
+        } else {
+            Log.w(TAG, "Proxy not attached to service");
+            if (DBG) Log.d(TAG, Log.getStackTraceString(new Throwable()));
+        }
+        return false;
     }
 
     /**

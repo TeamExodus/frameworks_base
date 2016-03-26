@@ -5831,7 +5831,7 @@ status_t ResTable::getEntry(
         }
 
         if (static_cast<size_t>(realEntryIndex) >= typeSpec->entryCount) {
-            ALOGV("For resource 0x%08x, entry index(%d) is beyond type entryCount(%d)",
+            ALOGW("For resource 0x%08x, entry index(%d) is beyond type entryCount(%d)",
                     Res_MAKEID(packageGroup->id - 1, typeIndex, entryIndex),
                     entryIndex, static_cast<int>(typeSpec->entryCount));
             // We should normally abort here, but some legacy apps declare
@@ -6101,7 +6101,7 @@ status_t ResTable::parsePackage(const ResTable_package* const pkg,
                 if (!typeList.isEmpty()) {
                     const Type* existingType = typeList[0];
                     if (existingType->entryCount != newEntryCount && idmapIndex < 0) {
-                        ALOGV("ResTable_typeSpec entry count inconsistent: given %d, previously %d",
+                        ALOGW("ResTable_typeSpec entry count inconsistent: given %d, previously %d",
                                 (int) newEntryCount, (int) existingType->entryCount);
                         // We should normally abort here, but some legacy apps declare
                         // resources in the 'android' package (old bug in AAPT).
@@ -6379,10 +6379,8 @@ status_t ResTable::createIdmap(const ResTable& overlay,
 
     KeyedVector<uint8_t, IdmapTypeMap> map;
 
-    // Overlaid packages are assumed to contain only one package group or two package group
-    // as one is "system package(android)", and another is "application package". So we need
-    // to use the last package group to create idmap.
-    const PackageGroup* pg = mPackageGroups[mPackageGroups.size() - 1];
+    // overlaid packages are assumed to contain only one package group
+    const PackageGroup* pg = mPackageGroups[0];
 
     // starting size is header
     *outSize = ResTable::IDMAP_HEADER_SIZE_BYTES;

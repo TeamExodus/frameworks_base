@@ -1307,7 +1307,6 @@ public class WifiManager {
      * in order to get valid results.
      */
     public List<ScanResult> getScanResults() {
-        android.util.SeempLog.record(72);
         try {
             return mService.getScanResults(mContext.getOpPackageName());
         } catch (RemoteException e) {
@@ -1416,19 +1415,6 @@ public class WifiManager {
     public boolean isDualBandSupported() {
         try {
             return mService.isDualBandSupported();
-        } catch (RemoteException e) {
-            return false;
-        }
-    }
-
-    /**
-     * Check if the chipset supports IBSS (Adhoc) mode
-     * @return {@code true} if supported, {@code false} otherwise.
-     * @hide
-     */
-    public boolean isIbssSupported() {
-        try {
-            return mService.isIbssSupported();
         } catch (RemoteException e) {
             return false;
         }

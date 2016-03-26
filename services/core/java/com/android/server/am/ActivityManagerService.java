@@ -71,7 +71,6 @@ import android.util.ArraySet;
 import android.util.DebugUtils;
 import android.util.SparseIntArray;
 import android.view.Display;
-import android.util.BoostFramework;
 
 import com.android.internal.R;
 import com.android.internal.annotations.GuardedBy;
@@ -260,8 +259,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
-import java.util.Date;
-import java.text.SimpleDateFormat;
 
 public final class ActivityManagerService extends ActivityManagerNative
         implements Watchdog.Monitor, BatteryStatsImpl.BatteryCallback {
@@ -322,6 +319,11 @@ public final class ActivityManagerService extends ActivityManagerNative
     // How long we wait for an attached process to publish its content providers
     // before we decide it must be hung.
     static final int CONTENT_PROVIDER_PUBLISH_TIMEOUT = 10*1000;
+
+    // How long we will retain processes hosting content providers in the "last activity"
+    // state before allowing them to drop down to the regular cached LRU list.  This is
+    // to avoid thrashing of provider processes under low memory situations.
+    static final int CONTENT_PROVIDER_RETAIN_TIME = 20*1000;
 
     // How long we wait for a launched process to attach to the activity manager
     // before we decide it's never going to come up for real, when the process was
@@ -409,8 +411,6 @@ public final class ActivityManagerService extends ActivityManagerNative
     // Necessary ApplicationInfo flags to mark an app as persistent
     private static final int PERSISTENT_MASK =
             ApplicationInfo.FLAG_SYSTEM|ApplicationInfo.FLAG_PERSISTENT;
-    private boolean mHomeKilled = false;
-    private String mHomeProcessName = null;
 
 
     // Delay to disable app launch boost
@@ -500,8 +500,6 @@ public final class ActivityManagerService extends ActivityManagerNative
      * The package name of the DeviceOwner. This package is not permitted to have its data cleared.
      */
     String mDeviceOwnerName;
-
-    SimpleDateFormat mTraceDateFormat = new SimpleDateFormat("dd_MMM_HH_mm_ss.SSS");
 
     public class PendingAssistExtras extends Binder implements Runnable {
         public final ActivityRecord activity;
@@ -1391,16 +1389,6 @@ public final class ActivityManagerService extends ActivityManagerNative
 
     CompatModeDialog mCompatModeDialog;
     long mLastMemUsageReportTime = 0;
-
-    // Min aging threshold in milliseconds to consider a B-service
-    int mMinBServiceAgingTime =
-            SystemProperties.getInt("ro.sys.fw.bservice_age", 5000);
-    // Threshold for B-services when in memory pressure
-    int mBServiceAppThreshold =
-            SystemProperties.getInt("ro.sys.fw.bservice_limit", 5);
-    // Enable B-service aging propagation on memory pressure.
-    boolean mEnableBServicePropagation =
-            SystemProperties.getBoolean("ro.sys.fw.bservice_enable", false);
 
     /**
      * Flag whether the current user is a "monkey", i.e. whether
@@ -3416,17 +3404,6 @@ public final class ActivityManagerService extends ActivityManagerNative
             checkTime(startTime, "startProcess: building log message");
             StringBuilder buf = mStringBuilder;
             buf.setLength(0);
-            if(hostingType.equals("activity"))
-            {
-                BoostFramework mPerf = null;
-                if (null == mPerf) {
-                    mPerf = new BoostFramework();
-                }
-                if (mPerf != null) {
-                    mPerf.perfIOPrefetchStart(startResult.pid,app.processName);
-                }
-            }
-
             buf.append("Start proc ");
             buf.append(startResult.pid);
             buf.append(':');
@@ -4742,12 +4719,7 @@ public final class ActivityManagerService extends ActivityManagerNative
                 app.thread.asBinder() == thread.asBinder()) {
             boolean doLowMem = app.instrumentationClass == null;
             boolean doOomAdj = doLowMem;
-            boolean homeRestart = false;
             if (!app.killedByAm) {
-                if (mHomeProcessName != null && app.processName.equals(mHomeProcessName)) {
-                    mHomeKilled = true;
-                    homeRestart = true;
-                }
                 Slog.i(TAG, "Process " + app.processName + " (pid " + pid
                         + ") has died");
                 mAllowLowerMemLevel = true;
@@ -4767,13 +4739,6 @@ public final class ActivityManagerService extends ActivityManagerNative
             }
             if (doLowMem) {
                 doLowMemReportIfNeededLocked(app);
-            }
-            if (mHomeKilled && homeRestart) {
-                Intent intent = getHomeIntent();
-                ActivityInfo aInfo = mStackSupervisor.resolveActivity(intent, null, 0, null, 0);
-                startProcessLocked(aInfo.processName, aInfo.applicationInfo, true, 0,
-                        "activity", null, false, false, true);
-                homeRestart = false;
             }
         } else if (app.pid != pid) {
             // A new process has already been started.
@@ -5124,20 +5089,6 @@ public final class ActivityManagerService extends ActivityManagerNative
                     activity != null ? activity.shortComponentName : null,
                     annotation != null ? "ANR " + annotation : "ANR",
                     info.toString());
-
-            //Set the trace file name to app name + current date format to avoid overrinding trace file
-            String tracesPath = SystemProperties.get("dalvik.vm.stack-trace-file", null);
-            if (tracesPath != null && tracesPath.length() != 0) {
-                File traceRenameFile = new File(tracesPath);
-                String newTracesPath;
-                int lpos = tracesPath.lastIndexOf (".");
-                if (-1 != lpos)
-                    newTracesPath = tracesPath.substring (0, lpos) + "_" + app.processName + "_" + mTraceDateFormat.format(new Date()) + tracesPath.substring (lpos);
-                else
-                    newTracesPath = tracesPath + "_" + app.processName;
-
-                traceRenameFile.renameTo(new File(newTracesPath));
-            }
 
             // Bring up the infamous App Not Responding dialog
             Message msg = Message.obtain();
@@ -9502,6 +9453,14 @@ public final class ActivityManagerService extends ActivityManagerNative
             if (conn.stableCount == 0 && conn.unstableCount == 0) {
                 cpr.connections.remove(conn);
                 conn.client.conProviders.remove(conn);
+                if (conn.client.setProcState < ActivityManager.PROCESS_STATE_LAST_ACTIVITY) {
+                    // The client is more important than last activity -- note the time this
+                    // is happening, so we keep the old provider process around a bit as last
+                    // activity to avoid thrashing it.
+                    if (cpr.proc != null) {
+                        cpr.proc.lastProviderTime = SystemClock.uptimeMillis();
+                    }
+                }
                 stopAssociationLocked(conn.client.uid, conn.client.processName, cpr.uid, cpr.name);
                 return true;
             }
@@ -15129,6 +15088,10 @@ public final class ActivityManagerService extends ActivityManagerNative
                 pw.print(" Lost RAM: "); pw.print(memInfo.getTotalSizeKb()
                         - totalPss - memInfo.getFreeSizeKb() - memInfo.getCachedSizeKb()
                         - memInfo.getKernelUsedSizeKb()); pw.println(" kB");
+            } else {
+                pw.print("lostram,"); pw.println(memInfo.getTotalSizeKb()
+                        - totalPss - memInfo.getFreeSizeKb() - memInfo.getCachedSizeKb()
+                        - memInfo.getKernelUsedSizeKb());
             }
             if (!brief) {
                 if (memInfo.getZramTotalSizeKb() != 0) {
@@ -15706,7 +15669,6 @@ public final class ActivityManagerService extends ActivityManagerNative
         mProcessesOnHold.remove(app);
 
         if (app == mHomeProcess) {
-            mHomeProcessName = mHomeProcess.processName;
             mHomeProcess = null;
         }
         if (app == mPreviousProcess) {
@@ -17762,10 +17724,6 @@ public final class ActivityManagerService extends ActivityManagerNative
             app.adjType = "top-activity";
             foregroundActivities = true;
             procState = PROCESS_STATE_TOP;
-            if(app == mHomeProcess) {
-                mHomeKilled = false;
-                mHomeProcessName = mHomeProcess.processName;
-            }
         } else if (app.instrumentationClass != null) {
             // Don't want to kill running instrumentation.
             adj = ProcessList.FOREGROUND_APP_ADJ;
@@ -17801,14 +17759,6 @@ public final class ActivityManagerService extends ActivityManagerNative
             app.cached = true;
             app.empty = true;
             app.adjType = "cch-empty";
-
-            if (mHomeKilled && app.processName.equals(mHomeProcessName)) {
-                adj = ProcessList.PERSISTENT_PROC_ADJ;
-                schedGroup = Process.THREAD_GROUP_DEFAULT;
-                app.cached = false;
-                app.empty = false;
-                app.adjType = "top-activity";
-            }
         }
 
         // Examine all activities if not already foreground.
@@ -18263,6 +18213,18 @@ public final class ActivityManagerService extends ActivityManagerNative
                 if (procState > ActivityManager.PROCESS_STATE_IMPORTANT_FOREGROUND) {
                     procState = ActivityManager.PROCESS_STATE_IMPORTANT_FOREGROUND;
                 }
+            }
+        }
+
+        if (app.lastProviderTime > 0 && (app.lastProviderTime+CONTENT_PROVIDER_RETAIN_TIME) > now) {
+            if (adj > ProcessList.PREVIOUS_APP_ADJ) {
+                adj = ProcessList.PREVIOUS_APP_ADJ;
+                schedGroup = Process.THREAD_GROUP_BG_NONINTERACTIVE;
+                app.cached = false;
+                app.adjType = "provider";
+            }
+            if (procState > ActivityManager.PROCESS_STATE_LAST_ACTIVITY) {
+                procState = ActivityManager.PROCESS_STATE_LAST_ACTIVITY;
             }
         }
 
@@ -19186,39 +19148,8 @@ public final class ActivityManagerService extends ActivityManagerNative
         int nextCachedAdj = curCachedAdj+1;
         int curEmptyAdj = ProcessList.CACHED_APP_MIN_ADJ;
         int nextEmptyAdj = curEmptyAdj+2;
-        ProcessRecord selectedAppRecord = null;
-        long serviceLastActivity = 0;
-        int numBServices = 0;
         for (int i=N-1; i>=0; i--) {
             ProcessRecord app = mLruProcesses.get(i);
-            if (mEnableBServicePropagation && app.serviceb
-                    && (app.curAdj == ProcessList.SERVICE_B_ADJ)) {
-                numBServices++;
-                for (int s = app.services.size() - 1; s >= 0; s--) {
-                    ServiceRecord sr = app.services.valueAt(s);
-                    if (DEBUG_OOM_ADJ) Slog.d(TAG,"app.processName = " + app.processName
-                            + " serviceb = " + app.serviceb + " s = " + s + " sr.lastActivity = "
-                            + sr.lastActivity + " packageName = " + sr.packageName
-                            + " processName = " + sr.processName);
-                    if (SystemClock.uptimeMillis() - sr.lastActivity
-                            < mMinBServiceAgingTime) {
-                        if (DEBUG_OOM_ADJ) {
-                            Slog.d(TAG,"Not aged enough!!!");
-                        }
-                        continue;
-                    }
-                    if (serviceLastActivity == 0) {
-                        serviceLastActivity = sr.lastActivity;
-                        selectedAppRecord = app;
-                    } else if (sr.lastActivity < serviceLastActivity) {
-                        serviceLastActivity = sr.lastActivity;
-                        selectedAppRecord = app;
-                    }
-                }
-            }
-            if (DEBUG_OOM_ADJ && selectedAppRecord != null) Slog.d(TAG,
-                    "Identified app.processName = " + selectedAppRecord.processName
-                    + " app.pid = " + selectedAppRecord.pid);
             if (!app.killedByAm && app.thread != null) {
                 app.procStateChanged = false;
                 computeOomAdjLocked(app, ProcessList.UNKNOWN_ADJ, TOP_APP, true, now);
@@ -19326,14 +19257,6 @@ public final class ActivityManagerService extends ActivityManagerNative
                     numTrimming++;
                 }
             }
-        }
-        if ((numBServices > mBServiceAppThreshold) && (true == mAllowLowerMemLevel)
-                && (selectedAppRecord != null)) {
-            ProcessList.setOomAdj(selectedAppRecord.pid, selectedAppRecord.info.uid,
-                    ProcessList.CACHED_APP_MAX_ADJ);
-            selectedAppRecord.setAdj = selectedAppRecord.curAdj;
-            if (DEBUG_OOM_ADJ) Slog.d(TAG,"app.processName = " + selectedAppRecord.processName
-                        + " app.pid = " + selectedAppRecord.pid + " is moved to higher adj");
         }
 
         mNumServiceProcs = mNewNumServiceProcs;
