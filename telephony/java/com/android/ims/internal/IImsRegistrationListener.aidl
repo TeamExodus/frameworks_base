@@ -17,6 +17,7 @@
 package com.android.ims.internal;
 
 import com.android.ims.ImsReasonInfo;
+
 /**
  * A listener type for receiving notifications about the changes to
  * the IMS connection(registration).
@@ -26,30 +27,36 @@ import com.android.ims.ImsReasonInfo;
 interface IImsRegistrationListener {
     /**
      * Notifies the application when the device is connected to the IMS network.
+     *
+     * @param imsRadioTech the radio access technology. Valid values are {@code
+     * RIL_RADIO_TECHNOLOGY_*} defined in {@link ServiceState}.
      */
-    void registrationConnected();
+    void registrationConnected(int imsRadioTech) = 0;
 
     /**
      * Notifies the application when the device is trying to connect the IMS network.
+     *
+     * @param imsRadioTech the radio access technology. Valid values are {@code
+     * RIL_RADIO_TECHNOLOGY_*} defined in {@link ServiceState}.
      */
-    void registrationProgressing();
+    void registrationProgressing(int imsRadioTech) = 1;
 
     /**
      * Notifies the application when the device is disconnected from the IMS network.
      */
-    void registrationDisconnected(in ImsReasonInfo imsReasonInfo);
+    void registrationDisconnected(in ImsReasonInfo imsReasonInfo) = 2;
 
     /**
      * Notifies the application when its suspended IMS connection is resumed,
      * meaning the connection now allows throughput.
      */
-    void registrationResumed();
+    void registrationResumed() = 3;
 
     /**
      * Notifies the application when its current IMS connection is suspended,
      * meaning there is no data throughput.
      */
-    void registrationSuspended();
+    void registrationSuspended() = 4;
 
     /**
      * Notifies the application when its current IMS connection is updated
@@ -60,7 +67,7 @@ interface IImsRegistrationListener {
      *    If {@code event} is 0, meaning the specified service is removed from the IMS connection.
      *    Else ({@code event} is 1), meaning the specified service is added to the IMS connection.
      */
-    void registrationServiceCapabilityChanged(int serviceClass, int event);
+    void registrationServiceCapabilityChanged(int serviceClass, int event) = 5;
 
     /**
      * Notifies the application when features on a particular service enabled or
@@ -71,11 +78,11 @@ interface IImsRegistrationListener {
      * @param disabledFeatures features disabled as defined in com.android.ims.ImsConfig#FeatureConstants.
      */
     void registrationFeatureCapabilityChanged(int serviceClass,
-            in int[] enabledFeatures, in int[] disabledFeatures);
+            in int[] enabledFeatures, in int[] disabledFeatures) = 6;
 
     /**
      * Updates the application with the waiting voice message count.
      * @param count The number of waiting voice messages.
      */
-    void voiceMessageCountUpdate(int count);
+    void voiceMessageCountUpdate(int count) = 7;
 }

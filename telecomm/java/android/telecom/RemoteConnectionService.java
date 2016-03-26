@@ -330,6 +330,10 @@ final class RemoteConnectionService {
                         .setExtras(extras);
             }
         }
+
+        @Override
+        public void resetCdmaConnectionTime(String callId) {
+        }
     };
 
     private final ConnectionServiceAdapterServant mServant =
