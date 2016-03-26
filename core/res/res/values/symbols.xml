@@ -2342,4 +2342,13 @@
 
   <java-symbol type="string" name="config_iccHotswapPromptForRestartDialogComponent" />
   <java-symbol type="string" name="config_packagedKeyboardName" />
+
+    <!-- Notification and battery light -->
+    <java-symbol type="bool" name="config_intrusiveNotificationLed" />
+    <java-symbol type="bool" name="config_multiColorNotificationLed" />
+    <java-symbol type="bool" name="config_intrusiveBatteryLed" />
+    <java-symbol type="bool" name="config_multiColorBatteryLed" />
+        <!-- Package Manager -->
+    <java-symbol type="array" name="config_disabledComponents" />
+    <java-symbol type="array" name="config_forceEnabledComponents" />
 </resources>
