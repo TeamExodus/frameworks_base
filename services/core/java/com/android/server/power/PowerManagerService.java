@@ -1614,8 +1614,6 @@ public final class PowerManagerService extends SystemService
                             + screenOffTimeout - screenDimDuration;
                     if (now < nextTimeout) {
                         mUserActivitySummary = USER_ACTIVITY_SCREEN_BRIGHT;
-<<<<<<< HEAD
-=======
                         if (mWakefulness == WAKEFULNESS_AWAKE) {
                             int buttonBrightness, keyboardBrightness;
                             if (mButtonBrightnessOverrideFromWindowManager >= 0) {
@@ -1640,7 +1638,6 @@ public final class PowerManagerService extends SystemService
                                 }
                             }
                         }
->>>>>>> 8cbb56a... ProximityWake : Add support for checking proximity when waking device
                     } else {
                         nextTimeout = mLastUserActivityTime + screenOffTimeout;
                         if (now < nextTimeout) {
@@ -3307,9 +3304,6 @@ public final class PowerManagerService extends SystemService
         }
 
         @Override // Binder call
-<<<<<<< HEAD
-        public void wakeUp(long eventTime, String reason, String opPackageName) {
-=======
         public void setKeyboardVisibility(boolean visible) {
             synchronized (mLock) {
                 if (DEBUG_SPEW) {
@@ -3350,7 +3344,6 @@ public final class PowerManagerService extends SystemService
          */
         private void wakeUp(final long eventTime, final String reason, final String opPackageName,
                 boolean checkProximity) {
->>>>>>> 8cbb56a... ProximityWake : Add support for checking proximity when waking device
             if (eventTime > SystemClock.uptimeMillis()) {
                 throw new IllegalArgumentException("event time must not be in the future");
             }

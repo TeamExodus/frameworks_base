@@ -22,7 +22,6 @@
   <java-symbol type="bool" name="config_multiColorNotificationLed" />
   <java-symbol type="bool" name="config_intrusiveBatteryLed" />
   <java-symbol type="bool" name="config_multiColorBatteryLed" />
-  <java-symbol type="array" name="notification_light_package_mapping" />
 
     <!-- Proximity check on screen on -->
     <java-symbol type="bool" name="config_proximityCheckOnWake" />
