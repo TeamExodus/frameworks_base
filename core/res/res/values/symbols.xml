@@ -2374,4 +2374,7 @@
 
   <!-- for wifi auto connection -->
   <java-symbol type="bool" name="wifi_autocon" />
+
+  <!-- IpReachability Monitor -->
+  <java-symbol type="bool" name="config_wifi_ipreachability_monitor" />
 </resources>
