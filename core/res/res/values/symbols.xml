@@ -2371,4 +2371,6 @@
   <!-- Gesture Sensor -->
   <java-symbol type="bool" name="config_enableGestureService" />
 
+  <!-- for wifi auto connection -->
+  <java-symbol type="bool" name="wifi_autocon" />
 </resources>

@@ -29,4 +29,8 @@
     <!-- Whether to allow vertically stacked button bars. This is disabled for
          configurations with a small (e.g. less than 320dp) screen height. -->
     <bool name="allow_stacked_button_bar">false</bool>
+
+    <!-- Whether to enable auto connection feature -->
+    <bool name="wifi_autocon">false</bool>
+
 </resources>
