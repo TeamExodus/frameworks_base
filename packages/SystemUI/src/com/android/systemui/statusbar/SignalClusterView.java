@@ -103,8 +103,6 @@ public class SignalClusterView
     private final int mMobileDataIconStartPadding;
     private final int mWideTypeIconStartPadding;
     private final int mSecondaryTelephonyPadding;
-    private final int mEndPadding;
-    private final int mEndPaddingNothingVisible;
     private final float mIconScaleFactor;
 
     private boolean mBlockAirplane;
@@ -131,9 +129,6 @@ public class SignalClusterView
                 res.getDimensionPixelSize(R.dimen.mobile_data_icon_start_padding);
         mWideTypeIconStartPadding = res.getDimensionPixelSize(R.dimen.wide_type_icon_start_padding);
         mSecondaryTelephonyPadding = res.getDimensionPixelSize(R.dimen.secondary_telephony_padding);
-        mEndPadding = res.getDimensionPixelSize(R.dimen.signal_cluster_battery_padding);
-        mEndPaddingNothingVisible = res.getDimensionPixelSize(
-                R.dimen.no_signal_cluster_battery_padding);
 
         TypedValue typedValue = new TypedValue();
         res.getValue(R.dimen.status_bar_icon_scale_factor, typedValue, true);

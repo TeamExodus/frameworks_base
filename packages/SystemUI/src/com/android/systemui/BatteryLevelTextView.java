@@ -30,10 +30,10 @@ public class BatteryLevelTextView extends TextView implements
         BatteryController.BatteryStateChangeCallback, TunerService.Tunable {
 
     private static final String STATUS_BAR_SHOW_BATTERY_PERCENT =
-            Settings.System.STATUS_BAR_SHOW_BATTERY_PERCENT;
+            "system:" + Settings.System.STATUS_BAR_SHOW_BATTERY_PERCENT;
 
     private static final String STATUS_BAR_BATTERY_STYLE =
-            Settings.System.STATUS_BAR_BATTERY_STYLE;
+            "system:" + Settings.System.STATUS_BAR_BATTERY_STYLE;
 
     private BatteryController mBatteryController;
 
