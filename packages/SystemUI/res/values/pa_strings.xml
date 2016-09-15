@@ -26,6 +26,12 @@
     <!-- OnTheSpot: Action confirmation button text. [CHAR LIMIT=NONE] -->
     <string name="on_the_spot_confirm">OKAY</string>
 
+    <!-- OnTheSpot: Quick Settings quick pull-down feature description message. [CHAR LIMIT=NONE] -->
+    <string name="quick_settings_quick_pull_down">Would you like the right side of the status bar to quickly pull down the Quick Settings panel?</string>
+    <!-- OnTheSpot: Title of the Quick Settings quick pull-down feature for the reset dialog. [CHAR LIMIT=NONE] -->
+    <string name="quick_settings_quick_pull_down_name">Quick Settings quick pull-down</string>
+    <string name="quick_settings_quick_pull_down_summary">Automatically expand Quick Settings when pulling from the side of the screen</string>
+
     <!-- Content description of the immersive mode tile -->
     <string name="accessibility_quick_settings_immersive_mode_off">Immersive mode off</string>
     <string name="accessibility_quick_settings_immersive_mode_full">Immersive mode fullscreen</string>
