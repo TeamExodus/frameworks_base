@@ -344,13 +344,15 @@ public class MobileSignalController extends SignalController<
                     dataContentDescription, description, icons.mIsWide,
                     mSubscriptionInfo.getSubscriptionId());
         }
-        CallbackHandler callbackHandler = (CallbackHandler) callback;
-        callbackHandler.post(new Runnable() {
-            @Override
-            public void run() {
-                mNetworkController.updateNetworkLabelView();
-            }
-       });
+        if (callback instanceof CallbackHandler) {
+            CallbackHandler callbackHandler = (CallbackHandler) callback;
+            callbackHandler.post(new Runnable() {
+                @Override
+                public void run() {
+                    mNetworkController.updateNetworkLabelView();
+                }
+           });
+        }
     }
 
     private int getEmbmsIconId() {
