@@ -32,7 +32,11 @@ import android.provider.Settings;
 public class ExodusSettingsObserver extends ContentObserver {
 
     private ContentResolver resolver = null;
-    private static boolean isVolteEnabled = false;;
+    private static boolean isVolteEnabled = false;
+    private static boolean isStatusBarDoubleTapEnabled = false;
+    private static boolean isKeyguardDoubleTapEnabled = false;
+    private static boolean isQuickPullEnabled = false;
+    private static boolean hasReadSettings = false;
 
     public ExodusSettingsObserver(Handler handler, Context context) {
         super(handler);
@@ -43,8 +47,25 @@ public class ExodusSettingsObserver extends ContentObserver {
         resolver.registerContentObserver(Settings.System
                 .getUriFor(Settings.System.SHOW_VOLTE),
                 true, this, UserHandle.USER_ALL);
-        setVolteLabelEnabled();
+
+        resolver.registerContentObserver(Settings.System
+                .getUriFor(Settings.System.DOUBLE_TAP_SLEEP_GESTURE),
+                false, this, UserHandle.USER_ALL);
+
+        resolver.registerContentObserver(Settings.System
+                .getUriFor(Settings.System.DOUBLE_TAP_SLEEP_ANYWHERE),
+                false, this, UserHandle.USER_ALL);
+
+        resolver.registerContentObserver(Settings.Secure
+                .getUriFor(Settings.Secure.QUICK_SETTINGS_QUICK_PULL_DOWN),
+                false, this, UserHandle.USER_ALL);
+        if(!hasReadSettings) {
+            setVolteLabelEnabled();
+            readSettings();
+            hasReadSettings = true;
+        }
     }
+
 
     public void registerClass() {
         observe();
@@ -60,6 +81,23 @@ public class ExodusSettingsObserver extends ContentObserver {
     @Override
     public void onChange(boolean selfChange) {
         setVolteLabelEnabled();
+        readSettings();
+    }
+
+    public void readSettings() {
+        
+        isStatusBarDoubleTapEnabled = Settings.System.getIntForUser(resolver,
+            Settings.System.DOUBLE_TAP_SLEEP_GESTURE, 0,
+            UserHandle.USER_CURRENT) == 1;
+
+        isKeyguardDoubleTapEnabled = Settings.System.getIntForUser(resolver,
+            Settings.System.DOUBLE_TAP_SLEEP_ANYWHERE, 0,
+            UserHandle.USER_CURRENT) == 1;
+
+        isQuickPullEnabled = Settings.Secure.getIntForUser(resolver,
+            Settings.Secure.QUICK_SETTINGS_QUICK_PULL_DOWN, 0,
+            UserHandle.USER_CURRENT) == 1;
+
     }
 
     public void setVolteLabelEnabled() {
@@ -68,8 +106,19 @@ public class ExodusSettingsObserver extends ContentObserver {
             UserHandle.USER_CURRENT) == 1;
     }
 
-    public boolean isVolteLabelEnabled() {
+    public static boolean isVolteLabelEnabled() {
         return isVolteEnabled;
     }
 
+    public static boolean isStatusBarDoubleTapEnabled() {
+        return isStatusBarDoubleTapEnabled;
+    }
+
+    public static boolean isKeyguardDoubleTapEnabled() {
+        return isKeyguardDoubleTapEnabled;
+    }
+
+    public static boolean isQuickPullEnabled() {
+        return isQuickPullEnabled;
+    }
 }

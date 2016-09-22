@@ -29,9 +29,12 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Rect;
+import android.net.Uri;
+import android.os.PowerManager;
 import android.provider.Settings;
 import android.util.AttributeSet;
 import android.util.MathUtils;
+import android.view.GestureDetector;
 import android.view.MotionEvent;
 import android.view.VelocityTracker;
 import android.view.View;
@@ -210,6 +213,9 @@ public class NotificationPanelView extends PanelView implements
     };
     private NotificationGroupManager mGroupManager;
 
+    private int mStatusBarHeaderHeight;
+    private static GestureDetector mDoubleTapGesture;
+
     public NotificationPanelView(Context context, AttributeSet attrs) {
         super(context, attrs);
         setWillNotDraw(!DEBUG);
@@ -286,6 +292,7 @@ public class NotificationPanelView extends PanelView implements
                 R.dimen.notification_panel_min_side_margin);
         mMaxFadeoutHeight = getResources().getDimensionPixelSize(
                 R.dimen.max_notification_fadeout_height);
+        mStatusBarHeaderHeight = getResources().getDimensionPixelSize(R.dimen.status_bar_header_height);
     }
 
     public void updateResources() {
@@ -739,6 +746,22 @@ public class NotificationPanelView extends PanelView implements
         if (mBlockTouches || mQsContainer.isCustomizing()) {
             return false;
         }
+        if (((com.android.systemui.exodus.ExodusSettingsObserver.isStatusBarDoubleTapEnabled() && event.getY() < mStatusBarHeaderHeight) 
+              || com.android.systemui.exodus.ExodusSettingsObserver.isKeyguardDoubleTapEnabled())
+                && mStatusBarState == StatusBarState.KEYGUARD) {
+            if(mDoubleTapGesture == null) {
+                mDoubleTapGesture = new GestureDetector(mContext, new GestureDetector.SimpleOnGestureListener() {
+                    @Override
+                    public boolean onDoubleTap(MotionEvent e) {
+                        PowerManager pm = (PowerManager) mContext.getSystemService(Context.POWER_SERVICE);
+                        if (pm != null)
+                            pm.goToSleep(e.getEventTime());
+                        return true;
+                    }
+                });
+            }
+            mDoubleTapGesture.onTouchEvent(event);
+        }
         initDownStates(event);
         if (mListenForHeadsUp && !mHeadsUpTouchHelper.isTrackingHeadsUp()
                 && mHeadsUpTouchHelper.onInterceptTouchEvent(event)) {
@@ -801,27 +824,6 @@ public class NotificationPanelView extends PanelView implements
         if ((twoFingerQsEvent || oneFingerQsOverride)
                 && event.getY(event.getActionIndex()) < mStatusBarMinHeight
                 && mExpandedHeight <= mQsPeekHeight) {
-            if (oneFingerQsOverride) {
-                final SettingConfirmationSnackbarViewCreator
-                        mSnackbarViewCreator = new
-                        SettingConfirmationSnackbarViewCreator(mContext);
-                SettingConfirmationHelper.prompt(
-                        mSnackbarViewCreator.getSnackbarView(),
-                        Settings.Secure.QUICK_SETTINGS_QUICK_PULL_DOWN,
-                        true,
-                        getContext().getString(R.string.quick_settings_quick_pull_down),
-                        new SettingConfirmationHelper.OnSettingChoiceListener() {
-                            @Override
-                            public void onSettingConfirm(final String settingName) {
-                            }
-
-                            @Override
-                            public void onSettingDeny(final String settingName) {
-                                closeQs();
-                            }
-                        },
-                        null);
-            }
 
             MetricsLogger.count(mContext, COUNTER_PANEL_OPEN_QS, 1);
             mQsExpandImmediate = true;
@@ -1394,10 +1396,7 @@ public class NotificationPanelView extends PanelView implements
         final float w = getMeasuredWidth();
         float region = (w * (1.f/4.f)); // TODO overlay region fraction?
         final boolean showQsOverride = (isLayoutRtl() ? (x < region) : (w - region < x))
-            && !mKeyguardShowing && SettingConfirmationHelper.get(
-                    getContext().getContentResolver(),
-                    Settings.Secure.QUICK_SETTINGS_QUICK_PULL_DOWN,
-                    notSetFallback);
+            && !mKeyguardShowing && com.android.systemui.exodus.ExodusSettingsObserver.isQuickPullEnabled();
 
         if (mQsExpanded) {
             return onHeader || (yDiff < 0 && isInQsArea(x, y));
