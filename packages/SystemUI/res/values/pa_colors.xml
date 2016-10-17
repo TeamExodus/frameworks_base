@@ -26,4 +26,6 @@
     <!-- OnTheSpot: OTS snackbar action confirmation button text color. -->
     <color name="on_the_spot_confirm_text">#FFFFFFFF</color>
 
+    <!-- Status bar battery level text color -->
+    <color name="status_bar_battery_level_text_color">#ffffff</color>
 </resources>

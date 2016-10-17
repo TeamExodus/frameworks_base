@@ -193,7 +193,8 @@ public class BatteryMeterDrawable extends Drawable implements
     public void startListening() {
         mListening = true;
         mContext.getContentResolver().registerContentObserver(
-                Settings.System.getUriFor(SHOW_PERCENT_SETTING), false, mSettingObserver);
+                Settings.System.getUriFor(Settings.System.STATUS_BAR_SHOW_BATTERY_PERCENT),
+                false, mSettingObserver);
         updateShowPercent();
         mBatteryController.addStateChangedCallback(this);
     }
@@ -292,8 +293,8 @@ public class BatteryMeterDrawable extends Drawable implements
     }
 
     private void updateShowPercent() {
-        mShowPercent = 0 != Settings.System.getInt(mContext.getContentResolver(),
-                SHOW_PERCENT_SETTING, 0);
+        mShowPercent = Settings.System.getInt(mContext.getContentResolver(),
+                Settings.System.STATUS_BAR_SHOW_BATTERY_PERCENT, 0) == 1;
     }
 
     private int getColorForLevel(int percent) {
