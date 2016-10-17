@@ -14,10 +14,20 @@
     See the License for the specific language governing permissions and
     limitations under the License.
 -->
-<objectAnimator
-  xmlns:android="http://schemas.android.com/apk/res/android"
-  android:interpolator="@android:interpolator/linear"
-  android:propertyName="trimPathEnd"
-  android:valueFrom="0"
-  android:valueTo="1"
-  android:valueType="floatType" />
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="26dp"
+    android:height="24dp"
+    android:viewportWidth="26"
+    android:viewportHeight="24">
+
+    <clip-path
+        android:name="mask"
+        android:pathData="@string/battery_landscape_clip_path" />
+
+    <!-- Path will be tinted based on battery level -->
+    <path
+        android:name="battery_level"
+        android:fillColor="#000000"
+        android:pathData="@string/battery_landscape_path_empty" />
+
+</vector>

@@ -42,7 +42,6 @@ import android.widget.TextView;
 import com.android.internal.statusbar.StatusBarIcon;
 import com.android.systemui.BatteryLevelTextView;
 import com.android.systemui.BatteryMeterView;
-import com.android.systemui.BatteryLevelTextView;
 import com.android.systemui.FontSizeUtils;
 import com.android.systemui.Interpolators;
 import com.android.systemui.R;
@@ -83,7 +82,6 @@ public class StatusBarIconController extends StatusBarIconList implements Tunabl
     private View mNotificationIconAreaInner;
 
     private BatteryMeterView mBatteryMeterView;
-    private BatteryLevelTextView mBatteryLevelTextView;
     private BatteryMeterView mBatteryMeterViewKeyguard;
 
     // Center & Left clock
@@ -154,8 +152,6 @@ public class StatusBarIconController extends StatusBarIconList implements Tunabl
         mStatusIconsKeyguard = (LinearLayout) keyguardStatusBar.findViewById(R.id.statusIcons);
 
         mBatteryMeterView = (BatteryMeterView) statusBar.findViewById(R.id.battery);
-        mBatteryLevelTextView =
-                (BatteryLevelTextView) statusBar.findViewById(R.id.battery_level_text);
         mBatteryMeterViewKeyguard = (BatteryMeterView) keyguardStatusBar.findViewById(R.id.battery);
         scaleBatteryMeterViews(context);
         
@@ -170,11 +166,10 @@ public class StatusBarIconController extends StatusBarIconList implements Tunabl
         mHandler = new Handler();
         loadDimens();
 
-        mBatteryLevelView = (BatteryLevelTextView) statusBar.findViewById(R.id.battery_level);
-
         mClock.setStatusBarIconController(this);
         mCenterClock.setStatusBarIconController(this);
         mLeftClock.setStatusBarIconController(this);
+        mBatteryLevelView = (BatteryLevelTextView) statusBar.findViewById(R.id.battery_level);
 
         TunerService.get(mContext).addTunable(this, ICON_BLACKLIST);
     }
@@ -597,7 +592,7 @@ public class StatusBarIconController extends StatusBarIconList implements Tunabl
         mLeftClock.setTextColor(getTint(mTintArea, mLeftClock, mIconTint));
         mCenterClock.setTextColor(getTint(mTintArea, mCenterClock, mIconTint));
     	mNetworkTraffic.setDarkIntensity(mDarkIntensity);
-        mBatteryLevelTextView.setTextColor(getTint(mTintArea, mClock, mIconTint));
+        mBatteryLevelView.setTextColor(getTint(mTintArea, mBatteryLevelView, mIconTint));
     }
 
     public void appTransitionPending() {
@@ -695,6 +690,6 @@ public class StatusBarIconController extends StatusBarIconList implements Tunabl
     }
 
     private void updateBatteryLevelText() {
-        FontSizeUtils.updateFontSize(mBatteryLevelView, R.dimen.status_bar_clock_size);
+        FontSizeUtils.updateFontSize(mBatteryLevelView, R.dimen.battery_level_text_size);
     }
 }
