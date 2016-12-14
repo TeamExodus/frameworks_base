@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-** Copyright (C) 2014-2016 ParanoidAndroid Project
+** Copyright (C) 2014-2017 ParanoidAndroid Project
 **
 ** Licensed under the Apache License, Version 2.0 (the "License");
 ** you may not use this file except in compliance with the License.
@@ -63,6 +63,18 @@
          config to 19. -->
     <integer name="config_deviceHardwareKeys">19</integer>
 
-    <!-- Whether notify fingerprint client of successful cancelled authentication -->
-    <bool name="config_notifyClientOnFingerprintCancelSuccess">false</bool>
+  <!-- Whether notify fingerprint client of successful cancelled authentication -->
+  <bool name="config_notifyClientOnFingerprintCancelSuccess">false</bool>
+
+  <!-- Extended Boosts for QPerformance -->
+
+  <!-- Whether cpu boost is enabled right after boot -->
+  <bool name="config_enableCpuBoostOnBoot">false</bool>
+
+  <!-- Duration of the boost in seconds, default is 30 -->
+  <integer name="onbootboost_duration">0</integer>
+
+  <!-- Boost parameters which get passed to QPerformance -->
+  <integer-array name="onbootboost_param_value"/>
+
 </resources>
