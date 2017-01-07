@@ -51,4 +51,6 @@
   <java-symbol type="integer" name="onbootboost_duration" />
   <java-symbol type="array" name="onbootboost_param_value" />
 
+  <!-- sRGB mode -->
+  <java-symbol type="string" name="config_srgb_path" />
 </resources>

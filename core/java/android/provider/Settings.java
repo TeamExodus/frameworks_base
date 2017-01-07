@@ -6593,6 +6593,12 @@ public final class Settings {
         public static final String SYSTEM_DESIGN_FLAGS = "system_design_flags";
 
         /**
+         * Used to store sRGB state
+         * @hide
+         */
+        public static final String SRGB_ENABLED = "srgb_enabled";
+
+        /**
          * This are the settings to be backed up.
          *
          * NOTE: Settings are backed up and restored in the order they appear
