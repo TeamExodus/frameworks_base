@@ -407,6 +407,7 @@ public class PackageManagerService extends IPackageManager.Stub {
     static final int SCAN_IGNORE_FROZEN = 1<<16;
 
     static final int REMOVE_CHATTY = 1<<17;
+    static final int SCAN_TRUSTED_OVERLAY = 1<<18;
 
     private static final int[] EMPTY_INT_ARRAY = new int[0];
 
