@@ -51,7 +51,7 @@ public class BatteryLevelTextView extends TextView implements
     public void setBatteryController(BatteryController batteryController) {
         mBatteryController = batteryController;
         mBatteryController.addStateChangedCallback(this);
-        TunerService.get(getContext()).addTunable(this,
+        TunerService.get(getContext()).addTunable(this, true,
                 STATUS_BAR_SHOW_BATTERY_PERCENT, STATUS_BAR_BATTERY_STYLE);
     }
 

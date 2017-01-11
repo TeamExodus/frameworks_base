@@ -95,9 +95,9 @@ public class BatteryMeterView extends ImageView implements
         super.onAttachedToWindow();
         mBatteryController.addStateChangedCallback(this);
         mDrawable.startListening();
-        TunerService.get(getContext()).addTunable(this,
-                StatusBarIconController.ICON_BLACKLIST,
-                STATUS_BAR_BATTERY_STYLE,
+        final TunerService tunable = TunerService.get(getContext());
+        tunable.addTunable(this, StatusBarIconController.ICON_BLACKLIST);
+        tunable.addTunable(this, true, STATUS_BAR_BATTERY_STYLE,
                 STATUS_BAR_SHOW_BATTERY_PERCENT);
     }
 
