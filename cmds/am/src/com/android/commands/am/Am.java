@@ -1392,29 +1392,28 @@ public class Am extends BaseCommand {
                     mGdbThread = new Thread() {
                         @Override
                         public void run() {
-                            BufferedReader in = new BufferedReader(converter);
-                            String line;
-                            int count = 0;
-                            while (true) {
-                                synchronized (MyActivityController.this) {
-                                    if (mGdbThread == null) {
-                                        return;
+                            try(BufferedReader in = new BufferedReader(converter)) {
+                                String line;
+                                int count = 0;
+                                while (true) {
+                                    synchronized (MyActivityController.this) {
+                                        if (mGdbThread == null) {
+                                            return;
+                                        }
+                                        if (count == 2) {
+                                            mGotGdbPrint = true;
+                                            MyActivityController.this.notifyAll();
+                                        }
                                     }
-                                    if (count == 2) {
-                                        mGotGdbPrint = true;
-                                        MyActivityController.this.notifyAll();
-                                    }
-                                }
-                                try {
                                     line = in.readLine();
                                     if (line == null) {
                                         return;
                                     }
                                     System.out.println("GDB: " + line);
                                     count++;
-                                } catch (IOException e) {
-                                    return;
                                 }
+                            }catch (IOException e) {
+                                return;
                             }
                         }
                     };
@@ -1487,52 +1486,52 @@ public class Am extends BaseCommand {
                 mAm.setActivityController(this, mMonkey);
                 mState = STATE_NORMAL;
 
-                InputStreamReader converter = new InputStreamReader(System.in);
-                BufferedReader in = new BufferedReader(converter);
-                String line;
+                try(BufferedReader in = new BufferedReader(new InputStreamReader(System.in))) {
+                    String line;
 
-                while ((line = in.readLine()) != null) {
-                    boolean addNewline = true;
-                    if (line.length() <= 0) {
-                        addNewline = false;
-                    } else if ("q".equals(line) || "quit".equals(line)) {
-                        resumeController(RESULT_DEFAULT);
-                        break;
-                    } else if (mState == STATE_CRASHED) {
-                        if ("c".equals(line) || "continue".equals(line)) {
-                            resumeController(RESULT_CRASH_DIALOG);
-                        } else if ("k".equals(line) || "kill".equals(line)) {
-                            resumeController(RESULT_CRASH_KILL);
+                    while ((line = in.readLine()) != null) {
+                        boolean addNewline = true;
+                        if (line.length() <= 0) {
+                            addNewline = false;
+                        } else if ("q".equals(line) || "quit".equals(line)) {
+                            resumeController(RESULT_DEFAULT);
+                            break;
+                        } else if (mState == STATE_CRASHED) {
+                            if ("c".equals(line) || "continue".equals(line)) {
+                                resumeController(RESULT_CRASH_DIALOG);
+                            } else if ("k".equals(line) || "kill".equals(line)) {
+                                resumeController(RESULT_CRASH_KILL);
+                            } else {
+                                System.out.println("Invalid command: " + line);
+                            }
+                        } else if (mState == STATE_ANR) {
+                            if ("c".equals(line) || "continue".equals(line)) {
+                                resumeController(RESULT_ANR_DIALOG);
+                            } else if ("k".equals(line) || "kill".equals(line)) {
+                                resumeController(RESULT_ANR_KILL);
+                            } else if ("w".equals(line) || "wait".equals(line)) {
+                                resumeController(RESULT_ANR_WAIT);
+                            } else {
+                                System.out.println("Invalid command: " + line);
+                            }
+                        } else if (mState == STATE_EARLY_ANR) {
+                            if ("c".equals(line) || "continue".equals(line)) {
+                                resumeController(RESULT_EARLY_ANR_CONTINUE);
+                            } else if ("k".equals(line) || "kill".equals(line)) {
+                                resumeController(RESULT_EARLY_ANR_KILL);
+                            } else {
+                                System.out.println("Invalid command: " + line);
+                            }
                         } else {
                             System.out.println("Invalid command: " + line);
                         }
-                    } else if (mState == STATE_ANR) {
-                        if ("c".equals(line) || "continue".equals(line)) {
-                            resumeController(RESULT_ANR_DIALOG);
-                        } else if ("k".equals(line) || "kill".equals(line)) {
-                            resumeController(RESULT_ANR_KILL);
-                        } else if ("w".equals(line) || "wait".equals(line)) {
-                            resumeController(RESULT_ANR_WAIT);
-                        } else {
-                            System.out.println("Invalid command: " + line);
-                        }
-                    } else if (mState == STATE_EARLY_ANR) {
-                        if ("c".equals(line) || "continue".equals(line)) {
-                            resumeController(RESULT_EARLY_ANR_CONTINUE);
-                        } else if ("k".equals(line) || "kill".equals(line)) {
-                            resumeController(RESULT_EARLY_ANR_KILL);
-                        } else {
-                            System.out.println("Invalid command: " + line);
-                        }
-                    } else {
-                        System.out.println("Invalid command: " + line);
-                    }
 
-                    synchronized (this) {
-                        if (addNewline) {
-                            System.out.println("");
+                        synchronized (this) {
+                            if (addNewline) {
+                                System.out.println("");
+                            }
+                            printMessageForState();
                         }
-                        printMessageForState();
                     }
                 }
 

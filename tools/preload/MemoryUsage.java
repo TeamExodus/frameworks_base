@@ -229,33 +229,37 @@ class MemoryUsage implements Serializable {
             }
 
             try {
+
                 final Process process = Runtime.getRuntime().exec(commands);
 
-                final InputStream err = process.getErrorStream();
+                try(final InputStream err = process.getErrorStream()) {
 
-                // Send error output to stderr.
-                Thread errThread = new Thread() {
-                    @Override
-                    public void run() {
-                        copy(err, System.err);
+                    // Send error output to stderr.
+                    Thread errThread = new Thread() {
+                        @Override
+                        public void run() {
+                            copy(err, System.err);
+                        }
+                    };
+                    errThread.setDaemon(true);
+                    errThread.start();
+
+                    try(BufferedReader in = new BufferedReader(
+                            new InputStreamReader(process.getInputStream()))) {
+                        String line = in.readLine();
+                        if (line == null || !line.startsWith("DECAFBAD,")) {
+                            System.err.println("Got bad response for " + className
+                                    + ": " + line + "; command was " + Arrays.toString(commands));
+                            errorCount += 1;
+                            return NOT_AVAILABLE;
+                        }
+
                     }
-                };
-                errThread.setDaemon(true);
-                errThread.start();
-
-                BufferedReader in = new BufferedReader(
-                        new InputStreamReader(process.getInputStream()));
-                String line = in.readLine();
-                if (line == null || !line.startsWith("DECAFBAD,")) {
-                    System.err.println("Got bad response for " + className
-                            + ": " + line + "; command was " + Arrays.toString(commands));
-                    errorCount += 1;
-                    return NOT_AVAILABLE;
+                } finally() {
+                    if(process != null) {
+                        process.destroy();
+                    }
                 }
-
-                in.close();
-                err.close();
-                process.destroy();                
 
                 return new MemoryUsage(line);
             } catch (IOException e) {

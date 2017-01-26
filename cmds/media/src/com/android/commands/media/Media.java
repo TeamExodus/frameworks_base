@@ -266,9 +266,7 @@ public class Media extends BaseCommand {
             };
             cbThread.start();
 
-            try {
-                InputStreamReader converter = new InputStreamReader(System.in);
-                BufferedReader in = new BufferedReader(converter);
+            try(BufferedReader in = new BufferedReader(new InputStreamReader(System.in))) {
                 String line;
 
                 while ((line = in.readLine()) != null) {

@@ -649,10 +649,8 @@ public class SettingsBackupAgent extends BackupAgentHelper {
         // representation of the backed-up settings.
         String root = getFilesDir().getAbsolutePath();
         File stage = new File(root, STAGE_FILE);
-        try {
-            FileOutputStream filestream = new FileOutputStream(stage);
-            BufferedOutputStream bufstream = new BufferedOutputStream(filestream);
-            DataOutputStream out = new DataOutputStream(bufstream);
+        try(DataOutputStream out = new DataOutputStream(
+                new BufferedOutputStream(new FileOutputStream(stage)))) {
 
             if (DEBUG_BACKUP) Log.d(TAG, "Writing flattened data version " + FULL_BACKUP_VERSION);
             out.writeInt(FULL_BACKUP_VERSION);
@@ -708,113 +706,114 @@ public class SettingsBackupAgent extends BackupAgentHelper {
         // Our data is actually a blob of flattened settings data identical to that
         // produced during incremental backups.  Just unpack and apply it all in
         // turn.
-        FileInputStream instream = new FileInputStream(data.getFileDescriptor());
-        DataInputStream in = new DataInputStream(instream);
+        try(DataInputStream in = new DataInputStream(
+            new FileInputStream(data.getFileDescriptor()))) {
 
-        int version = in.readInt();
-        if (DEBUG_BACKUP) Log.d(TAG, "Flattened data version " + version);
-        if (version <= FULL_BACKUP_VERSION) {
-            // Generate the moved-to-global lookup table
-            HashSet<String> movedToGlobal = new HashSet<String>();
-            Settings.System.getMovedToGlobalSettings(movedToGlobal);
-            Settings.Secure.getMovedToGlobalSettings(movedToGlobal);
+            int version = in.readInt();
+            if (DEBUG_BACKUP) Log.d(TAG, "Flattened data version " + version);
+            if (version <= FULL_BACKUP_VERSION) {
+                // Generate the moved-to-global lookup table
+                HashSet<String> movedToGlobal = new HashSet<String>();
+                Settings.System.getMovedToGlobalSettings(movedToGlobal);
+                Settings.Secure.getMovedToGlobalSettings(movedToGlobal);
 
-            // system settings data first
-            int nBytes = in.readInt();
-            if (DEBUG_BACKUP) Log.d(TAG, nBytes + " bytes of settings data");
-            byte[] buffer = new byte[nBytes];
-            in.readFully(buffer, 0, nBytes);
-            restoreSettings(buffer, nBytes, Settings.System.CONTENT_URI, movedToGlobal);
+                // system settings data first
+                int nBytes = in.readInt();
+                if (DEBUG_BACKUP) Log.d(TAG, nBytes + " bytes of settings data");
+                byte[] buffer = new byte[nBytes];
+                in.readFully(buffer, 0, nBytes);
+                restoreSettings(buffer, nBytes, Settings.System.CONTENT_URI, movedToGlobal);
 
-            // secure settings
-            nBytes = in.readInt();
-            if (DEBUG_BACKUP) Log.d(TAG, nBytes + " bytes of secure settings data");
-            if (nBytes > buffer.length) buffer = new byte[nBytes];
-            in.readFully(buffer, 0, nBytes);
-            restoreSettings(buffer, nBytes, Settings.Secure.CONTENT_URI, movedToGlobal);
-
-            // Global only if sufficiently new
-            if (version >= FULL_BACKUP_ADDED_GLOBAL) {
+                // secure settings
                 nBytes = in.readInt();
-                if (DEBUG_BACKUP) Log.d(TAG, nBytes + " bytes of global settings data");
+                if (DEBUG_BACKUP) Log.d(TAG, nBytes + " bytes of secure settings data");
                 if (nBytes > buffer.length) buffer = new byte[nBytes];
                 in.readFully(buffer, 0, nBytes);
-                movedToGlobal.clear();  // no redirection; this *is* the global namespace
-                restoreSettings(buffer, nBytes, Settings.Global.CONTENT_URI, movedToGlobal);
-            }
+                restoreSettings(buffer, nBytes, Settings.Secure.CONTENT_URI, movedToGlobal);
 
-            // locale
-            nBytes = in.readInt();
-            if (DEBUG_BACKUP) Log.d(TAG, nBytes + " bytes of locale data");
-            if (nBytes > buffer.length) buffer = new byte[nBytes];
-            in.readFully(buffer, 0, nBytes);
-            mSettingsHelper.setLocaleData(buffer, nBytes);
-
-            // wifi supplicant
-            nBytes = in.readInt();
-            if (DEBUG_BACKUP) Log.d(TAG, nBytes + " bytes of wifi supplicant data");
-            if (nBytes > buffer.length) buffer = new byte[nBytes];
-            in.readFully(buffer, 0, nBytes);
-            int retainedWifiState = enableWifi(false);
-            restoreWifiSupplicant(FILE_WIFI_SUPPLICANT, buffer, nBytes);
-            FileUtils.setPermissions(FILE_WIFI_SUPPLICANT,
-                    FileUtils.S_IRUSR | FileUtils.S_IWUSR
-                    | FileUtils.S_IRGRP | FileUtils.S_IWGRP,
-                    Process.myUid(), Process.WIFI_UID);
-            // retain the previous WIFI state.
-            enableWifi(retainedWifiState == WifiManager.WIFI_STATE_ENABLED
-                    || retainedWifiState == WifiManager.WIFI_STATE_ENABLING);
-
-            // wifi config
-            nBytes = in.readInt();
-            if (DEBUG_BACKUP) Log.d(TAG, nBytes + " bytes of wifi config data");
-            if (nBytes > buffer.length) buffer = new byte[nBytes];
-            in.readFully(buffer, 0, nBytes);
-            restoreFileData(mWifiConfigFile, buffer, nBytes);
-
-            if (version >= FULL_BACKUP_ADDED_LOCK_SETTINGS) {
-                nBytes = in.readInt();
-                if (DEBUG_BACKUP) Log.d(TAG, nBytes + " bytes of lock settings data");
-                if (nBytes > buffer.length) buffer = new byte[nBytes];
-                if (nBytes > 0) {
+                // Global only if sufficiently new
+                if (version >= FULL_BACKUP_ADDED_GLOBAL) {
+                    nBytes = in.readInt();
+                    if (DEBUG_BACKUP) Log.d(TAG, nBytes + " bytes of global settings data");
+                    if (nBytes > buffer.length) buffer = new byte[nBytes];
                     in.readFully(buffer, 0, nBytes);
-                    restoreLockSettings(buffer, nBytes);
+                    movedToGlobal.clear();  // no redirection; this *is* the global namespace
+                    restoreSettings(buffer, nBytes, Settings.Global.CONTENT_URI, movedToGlobal);
                 }
-            }
-            // softap config
-            if (version >= FULL_BACKUP_ADDED_SOFTAP_CONF) {
+
+                // locale
                 nBytes = in.readInt();
-                if (DEBUG_BACKUP) Log.d(TAG, nBytes + " bytes of softap config data");
+                if (DEBUG_BACKUP) Log.d(TAG, nBytes + " bytes of locale data");
                 if (nBytes > buffer.length) buffer = new byte[nBytes];
-                if (nBytes > 0) {
-                    in.readFully(buffer, 0, nBytes);
-                    restoreSoftApConfiguration(buffer);
-                }
-            }
-            // network policies
-            if (version >= FULL_BACKUP_ADDED_NETWORK_POLICIES) {
+                in.readFully(buffer, 0, nBytes);
+                mSettingsHelper.setLocaleData(buffer, nBytes);
+
+                // wifi supplicant
                 nBytes = in.readInt();
-                if (DEBUG_BACKUP) Log.d(TAG, nBytes + " bytes of network policies data");
+                if (DEBUG_BACKUP) Log.d(TAG, nBytes + " bytes of wifi supplicant data");
                 if (nBytes > buffer.length) buffer = new byte[nBytes];
-                if (nBytes > 0) {
-                    in.readFully(buffer, 0, nBytes);
-                    restoreNetworkPolicies(buffer);
+                in.readFully(buffer, 0, nBytes);
+                int retainedWifiState = enableWifi(false);
+                restoreWifiSupplicant(FILE_WIFI_SUPPLICANT, buffer, nBytes);
+                FileUtils.setPermissions(FILE_WIFI_SUPPLICANT,
+                        FileUtils.S_IRUSR | FileUtils.S_IWUSR
+                        | FileUtils.S_IRGRP | FileUtils.S_IWGRP,
+                        Process.myUid(), Process.WIFI_UID);
+                // retain the previous WIFI state.
+                enableWifi(retainedWifiState == WifiManager.WIFI_STATE_ENABLED
+                        || retainedWifiState == WifiManager.WIFI_STATE_ENABLING);
+
+                // wifi config
+                nBytes = in.readInt();
+                if (DEBUG_BACKUP) Log.d(TAG, nBytes + " bytes of wifi config data");
+                if (nBytes > buffer.length) buffer = new byte[nBytes];
+                in.readFully(buffer, 0, nBytes);
+                restoreFileData(mWifiConfigFile, buffer, nBytes);
+
+                if (version >= FULL_BACKUP_ADDED_LOCK_SETTINGS) {
+                    nBytes = in.readInt();
+                    if (DEBUG_BACKUP) Log.d(TAG, nBytes + " bytes of lock settings data");
+                    if (nBytes > buffer.length) buffer = new byte[nBytes];
+                    if (nBytes > 0) {
+                        in.readFully(buffer, 0, nBytes);
+                        restoreLockSettings(buffer, nBytes);
+                    }
                 }
+                // softap config
+                if (version >= FULL_BACKUP_ADDED_SOFTAP_CONF) {
+                    nBytes = in.readInt();
+                    if (DEBUG_BACKUP) Log.d(TAG, nBytes + " bytes of softap config data");
+                    if (nBytes > buffer.length) buffer = new byte[nBytes];
+                    if (nBytes > 0) {
+                        in.readFully(buffer, 0, nBytes);
+                        restoreSoftApConfiguration(buffer);
+                    }
+                }
+                // network policies
+                if (version >= FULL_BACKUP_ADDED_NETWORK_POLICIES) {
+                    nBytes = in.readInt();
+                    if (DEBUG_BACKUP) Log.d(TAG, nBytes + " bytes of network policies data");
+                    if (nBytes > buffer.length) buffer = new byte[nBytes];
+                    if (nBytes > 0) {
+                        in.readFully(buffer, 0, nBytes);
+                        restoreNetworkPolicies(buffer);
+                    }
+                }
+                if (DEBUG_BACKUP) Log.d(TAG, "Full restore complete.");
+            } else {
+                data.close();
+                throw new IOException("Invalid file schema");
             }
-            if (DEBUG_BACKUP) Log.d(TAG, "Full restore complete.");
-        } else {
-            data.close();
-            throw new IOException("Invalid file schema");
+        } catch (IOException ioe) {
+            // Bail
         }
     }
 
     private long[] readOldChecksums(ParcelFileDescriptor oldState) throws IOException {
         long[] stateChecksums = new long[STATE_SIZE];
 
-        DataInputStream dataInput = new DataInputStream(
-                new FileInputStream(oldState.getFileDescriptor()));
-
-        try {
+        try(DataInputStream dataInput = new DataInputStream(
+            new FileInputStream(oldState.getFileDescriptor()))) {
             int stateVersion = dataInput.readInt();
             if (stateVersion > STATE_VERSION) {
                 // Constrain the maximum state version this backup agent
@@ -828,20 +827,19 @@ public class SettingsBackupAgent extends BackupAgentHelper {
             // With the default 0 checksum we'll wind up forcing a backup of
             // any unhandled data sets, which is appropriate.
         }
-        dataInput.close();
         return stateChecksums;
     }
 
     private void writeNewChecksums(long[] checksums, ParcelFileDescriptor newState)
             throws IOException {
-        DataOutputStream dataOutput = new DataOutputStream(
-                new BufferedOutputStream(new FileOutputStream(newState.getFileDescriptor())));
+        try(DataOutputStream dataOutput = new DataOutputStream(
+            new BufferedOutputStream(new FileOutputStream(newState.getFileDescriptor())))) {
 
-        dataOutput.writeInt(STATE_VERSION);
-        for (int i = 0; i < STATE_SIZE; i++) {
-            dataOutput.writeLong(checksums[i]);
+            dataOutput.writeInt(STATE_VERSION);
+            for (int i = 0; i < STATE_SIZE; i++) {
+                dataOutput.writeLong(checksums[i]);
+            }
         }
-        dataOutput.close();
     }
 
     private long writeIfChanged(long oldChecksum, String key, byte[] data,
@@ -901,10 +899,10 @@ public class SettingsBackupAgent extends BackupAgentHelper {
         final LockPatternUtils lockPatternUtils = new LockPatternUtils(this);
         final boolean ownerInfoEnabled = lockPatternUtils.isOwnerInfoEnabled(UserHandle.myUserId());
         final String ownerInfo = lockPatternUtils.getOwnerInfo(UserHandle.myUserId());
-
-        ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        DataOutputStream out = new DataOutputStream(baos);
-        try {
+        byte[] aLockSettings = null;
+        
+        try(ByteArrayOutputStream baos = new ByteArrayOutputStream();
+                DataOutputStream out = new DataOutputStream(baos)) {
             out.writeUTF(KEY_LOCK_SETTINGS_OWNER_INFO_ENABLED);
             out.writeUTF(ownerInfoEnabled ? "1" : "0");
             if (ownerInfo != null) {
@@ -914,9 +912,10 @@ public class SettingsBackupAgent extends BackupAgentHelper {
             // End marker
             out.writeUTF("");
             out.flush();
+            aLockSettings = baos.toByteArray();
         } catch (IOException ioe) {
         }
-        return baos.toByteArray();
+        return aLockSettings;
     }
 
     private void restoreSettings(BackupDataInput data, Uri contentUri,
@@ -1003,10 +1002,9 @@ public class SettingsBackupAgent extends BackupAgentHelper {
      */
     private void restoreLockSettings(byte[] buffer, int nBytes) {
         final LockPatternUtils lockPatternUtils = new LockPatternUtils(this);
-
-        ByteArrayInputStream bais = new ByteArrayInputStream(buffer, 0, nBytes);
-        DataInputStream in = new DataInputStream(bais);
-        try {
+        
+        try(ByteArrayInputStream bais = new ByteArrayInputStream(buffer, 0, nBytes);
+                DataInputStream in = new DataInputStream(bais)) {
             String key;
             // Read until empty string marker
             while ((key = in.readUTF()).length() > 0) {
@@ -1024,7 +1022,6 @@ public class SettingsBackupAgent extends BackupAgentHelper {
                         break;
                 }
             }
-            in.close();
         } catch (IOException ioe) {
         }
     }
@@ -1115,38 +1112,33 @@ public class SettingsBackupAgent extends BackupAgentHelper {
     }
 
     private byte[] getFileData(String filename) {
-        InputStream is = null;
+        byte[] bytes = null;
         try {
             File file = new File(filename);
-            is = new FileInputStream(file);
+            try(InputStream is = new FileInputStream(file)) {
 
-            //Will truncate read on a very long file,
-            //should not happen for a config file
-            byte[] bytes = new byte[(int) file.length()];
+                //Will truncate read on a very long file,
+                //should not happen for a config file
+                bytes = new byte[(int) file.length()];
 
-            int offset = 0;
-            int numRead = 0;
-            while (offset < bytes.length
-                    && (numRead = is.read(bytes, offset, bytes.length - offset)) >= 0) {
-                offset += numRead;
-            }
+                int offset = 0;
+                int numRead = 0;
+                while (offset < bytes.length
+                        && (numRead = is.read(bytes, offset, bytes.length - offset)) >= 0) {
+                    offset += numRead;
+                }
 
-            //read failure
-            if (offset < bytes.length) {
-                Log.w(TAG, "Couldn't backup " + filename);
-                return EMPTY_DATA;
+                //read failure
+                if (offset < bytes.length) {
+                    Log.w(TAG, "Couldn't backup " + filename);
+                    return EMPTY_DATA;
+                }
             }
             return bytes;
         } catch (IOException ioe) {
             Log.w(TAG, "Couldn't backup " + filename);
             return EMPTY_DATA;
         } finally {
-            if (is != null) {
-                try {
-                    is.close();
-                } catch (IOException e) {
-                }
-            }
         }
     }
 
@@ -1155,9 +1147,11 @@ public class SettingsBackupAgent extends BackupAgentHelper {
             File file = new File(filename);
             if (file.exists()) file.delete();
 
-            OutputStream os = new BufferedOutputStream(new FileOutputStream(filename, true));
-            os.write(bytes, 0, size);
-            os.close();
+            try(OutputStream os = new BufferedOutputStream(
+                    new FileOutputStream(filename, true))) {
+                os.write(bytes, 0, size);
+            }
+
         } catch (IOException ioe) {
             Log.w(TAG, "Couldn't restore " + filename);
         }
@@ -1165,7 +1159,6 @@ public class SettingsBackupAgent extends BackupAgentHelper {
 
 
     private byte[] getWifiSupplicant(String filename) {
-        BufferedReader br = null;
         try {
             File file = new File(filename);
             if (!file.exists()) {
@@ -1176,24 +1169,26 @@ public class SettingsBackupAgent extends BackupAgentHelper {
             List<WifiConfiguration> configs = wifi.getConfiguredNetworks();
 
             WifiNetworkSettings fromFile = new WifiNetworkSettings();
-            br = new BufferedReader(new FileReader(file));
-            fromFile.readNetworks(br, configs, false);
+            try(BufferedReader br = new BufferedReader(new FileReader(file))) {
+                fromFile.readNetworks(br, configs, false);
 
-            // Write the parsed networks into a packed byte array
-            if (fromFile.mKnownNetworks.size() > 0) {
-                ByteArrayOutputStream bos = new ByteArrayOutputStream();
-                OutputStreamWriter out = new OutputStreamWriter(bos);
-                fromFile.write(out);
-                out.flush();
-                return bos.toByteArray();
-            } else {
-                return EMPTY_DATA;
+                // Write the parsed networks into a packed byte array
+                if (fromFile.mKnownNetworks.size() > 0) {
+                    byte[] bosByteArry;
+                    try(ByteArrayOutputStream bos = new ByteArrayOutputStream();
+                            OutputStreamWriter out = new OutputStreamWriter(bos)) {
+                        fromFile.write(out);
+                        out.flush();
+                        bosByteArry = bos.toByteArray();
+                    }
+                    return bosByteArry;
+                } else {
+                    return EMPTY_DATA;
+                }
             }
         } catch (IOException ioe) {
             Log.w(TAG, "Couldn't backup " + filename);
             return EMPTY_DATA;
-        } finally {
-            IoUtils.closeQuietly(br);
         }
     }
 
@@ -1204,9 +1199,10 @@ public class SettingsBackupAgent extends BackupAgentHelper {
             File supplicantFile = new File(FILE_WIFI_SUPPLICANT);
             if (supplicantFile.exists()) {
                 // Retain the existing APs; we'll append the restored ones to them
-                BufferedReader in = new BufferedReader(new FileReader(FILE_WIFI_SUPPLICANT));
-                supplicantImage.readNetworks(in, null, true);
-                in.close();
+                try(BufferedReader in = new BufferedReader(
+                        new FileReader(FILE_WIFI_SUPPLICANT))) {
+                    supplicantImage.readNetworks(in, null, true);
+                }
 
                 supplicantFile.delete();
             }
@@ -1225,12 +1221,13 @@ public class SettingsBackupAgent extends BackupAgentHelper {
             }
 
             // Install the correct default template
-            BufferedWriter bw = new BufferedWriter(new FileWriter(FILE_WIFI_SUPPLICANT));
-            copyWifiSupplicantTemplate(bw);
+            try(BufferedWriter bw = new BufferedWriter(
+                    new FileWriter(FILE_WIFI_SUPPLICANT))) {
+                copyWifiSupplicantTemplate(bw);
 
-            // Write the restored supplicant config and we're done
-            supplicantImage.write(bw);
-            bw.close();
+                // Write the restored supplicant config and we're done
+                supplicantImage.write(bw);
+            }
         } catch (IOException ioe) {
             Log.w(TAG, "Couldn't restore " + filename);
         }
@@ -1277,9 +1274,9 @@ public class SettingsBackupAgent extends BackupAgentHelper {
                 (NetworkPolicyManager) getSystemService(NETWORK_POLICY_SERVICE);
         NetworkPolicy[] policies = networkPolicyManager.getNetworkPolicies();
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        byte[] baosArry = null;
         if (policies != null && policies.length != 0) {
-            DataOutputStream out = new DataOutputStream(baos);
-            try {
+            try(DataOutputStream out = new DataOutputStream(baos)) {
                 out.writeInt(NETWORK_POLICIES_BACKUP_VERSION);
                 out.writeInt(policies.length);
                 for (NetworkPolicy policy : policies) {
@@ -1292,20 +1289,20 @@ public class SettingsBackupAgent extends BackupAgentHelper {
                         out.writeByte(BackupUtils.NULL);
                     }
                 }
+                baosArry = baos.toByteArray();
             } catch (IOException ioe) {
                 Log.e(TAG, "Failed to convert NetworkPolicies to byte array " + ioe.getMessage());
                 baos.reset();
             }
         }
-        return baos.toByteArray();
+        return baosArry;
     }
 
     private void restoreNetworkPolicies(byte[] data) {
         NetworkPolicyManager networkPolicyManager =
                 (NetworkPolicyManager) getSystemService(NETWORK_POLICY_SERVICE);
         if (data != null && data.length != 0) {
-            DataInputStream in = new DataInputStream(new ByteArrayInputStream(data));
-            try {
+            try(DataInputStream in = new DataInputStream(new ByteArrayInputStream(data))) {
                 int version = in.readInt();
                 if (version < 1 || version > NETWORK_POLICIES_BACKUP_VERSION) {
                     throw new BackupUtils.BadVersionException(

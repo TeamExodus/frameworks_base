@@ -35,53 +35,55 @@ public class PrintHtmlDiff {
             ClassNotFoundException {
         Root root = Root.fromFile(args[0]);
 
-        BufferedReader oldClasses = new BufferedReader(
-            new FileReader(OLD_PRELOADED_CLASSES));
+        try(BufferedReader oldClasses = new BufferedReader(
+            new FileReader(OLD_PRELOADED_CLASSES))) {
 
-        // Classes loaded implicitly by the zygote.
-        Set<LoadedClass> zygote = new HashSet<LoadedClass>();
-        for (Proc proc : root.processes.values()) {
-            if (proc.name.equals("zygote")) {
-                for (Operation op : proc.operations) {
-                    zygote.add(op.loadedClass);
+            // Classes loaded implicitly by the zygote.
+            Set<LoadedClass> zygote = new HashSet<LoadedClass>();
+            for (Proc proc : root.processes.values()) {
+                if (proc.name.equals("zygote")) {
+                    for (Operation op : proc.operations) {
+                        zygote.add(op.loadedClass);
+                    }
+                    break;
                 }
-                break;
+            }
+
+            Set<LoadedClass> removed = new TreeSet<LoadedClass>();
+            Set<LoadedClass> added = new TreeSet<LoadedClass>();
+
+            for (LoadedClass loadedClass : root.loadedClasses.values()) {
+                if (loadedClass.preloaded && !zygote.contains(loadedClass)) {
+                    added.add(loadedClass);
+                }
+            }
+
+            String line;
+            while ((line = oldClasses.readLine()) != null) {
+                line = line.trim();
+                LoadedClass clazz = root.loadedClasses.get(line);
+                if (clazz != null) {
+                    added.remove(clazz);
+                    if (!clazz.preloaded) removed.add(clazz);
+                }
+            }
+
+            try(PrintStream out = System.out) {
+
+                out.println("<html><body>");
+                out.println("<style>");
+                out.println("a, th, td, h2 { font-family: arial }");
+                out.println("th, td { font-size: small }");
+                out.println("</style>");
+                out.println("<script src=\"sorttable.js\"></script>");
+                out.println("<p><a href=\"#removed\">Removed</a>");
+                out.println("<a name=\"added\"/><h2>Added</h2>");
+                printTable(out, root.baseline, added);
+                out.println("<a name=\"removed\"/><h2>Removed</h2>");
+                printTable(out, root.baseline, removed);
+                out.println("</body></html>");
             }
         }
-
-        Set<LoadedClass> removed = new TreeSet<LoadedClass>();
-        Set<LoadedClass> added = new TreeSet<LoadedClass>();
-
-        for (LoadedClass loadedClass : root.loadedClasses.values()) {
-            if (loadedClass.preloaded && !zygote.contains(loadedClass)) {
-                added.add(loadedClass);
-            }
-        }
-
-        String line;
-        while ((line = oldClasses.readLine()) != null) {
-            line = line.trim();
-            LoadedClass clazz = root.loadedClasses.get(line);
-            if (clazz != null) {
-                added.remove(clazz);
-                if (!clazz.preloaded) removed.add(clazz);
-            }
-        }
-
-        PrintStream out = System.out;
-
-        out.println("<html><body>");
-        out.println("<style>");
-        out.println("a, th, td, h2 { font-family: arial }");
-        out.println("th, td { font-size: small }");
-        out.println("</style>");
-        out.println("<script src=\"sorttable.js\"></script>");
-        out.println("<p><a href=\"#removed\">Removed</a>");
-        out.println("<a name=\"added\"/><h2>Added</h2>");
-        printTable(out, root.baseline, added);
-        out.println("<a name=\"removed\"/><h2>Removed</h2>");
-        printTable(out, root.baseline, removed);
-        out.println("</body></html>");
     }
 
     static void printTable(PrintStream out, MemoryUsage baseline,
