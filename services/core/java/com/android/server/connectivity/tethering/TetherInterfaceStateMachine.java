@@ -88,7 +88,6 @@ public class TetherInterfaceStateMachine extends StateMachine {
     private final String mIfaceName;
     private final int mInterfaceType;
     private final IPv6TetheringInterfaceServices mIPv6TetherSvc;
-    private boolean mIpv6TetheringEnabled;
 
     private int mLastError;
     private String mMyUpstreamIfaceName;  // may change over time
@@ -103,7 +102,6 @@ public class TetherInterfaceStateMachine extends StateMachine {
         mIfaceName = ifaceName;
         mInterfaceType = interfaceType;
         mIPv6TetherSvc = new IPv6TetheringInterfaceServices(mIfaceName, mNMService);
-        mIpv6TetheringEnabled = false;
         mLastError = ConnectivityManager.TETHER_ERROR_NO_ERROR;
 
         mInitialState = new InitialState();
@@ -116,12 +114,6 @@ public class TetherInterfaceStateMachine extends StateMachine {
         setInitialState(mInitialState);
     }
 
-    public TetherInterfaceStateMachine(String ifaceName, Looper looper, int interfaceType,
-                    INetworkManagementService nMService, INetworkStatsService statsService,
-                    IControlsTethering tetherController,boolean Ipv6TetheringEnabled) {
-           this(ifaceName,looper,interfaceType,nMService,statsService,tetherController);
-           mIpv6TetheringEnabled = Ipv6TetheringEnabled;
-    }
     public int interfaceType() {
         return mInterfaceType;
     }
@@ -222,7 +214,7 @@ public class TetherInterfaceStateMachine extends StateMachine {
                 return;
             }
 
-            if (mIpv6TetheringEnabled && !mIPv6TetherSvc.start()) {
+            if (!mIPv6TetherSvc.start()) {
                 Log.e(TAG, "Failed to start IPv6TetheringInterfaceServices");
             }
 

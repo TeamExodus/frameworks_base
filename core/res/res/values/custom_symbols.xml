@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-** Copyright (C) 2014, ParanoidAndroid Project
+** Copyright (C) 2014-2017, ExodusAndroid Project
 **
 ** Licensed under the Apache License, Version 2.0 (the "License");
 ** you may not use this file except in compliance with the License.
@@ -20,4 +20,20 @@
   <java-symbol type="integer" name="config_buttonBrightnessSettingMinimum" />
   <java-symbol type="integer" name="config_buttonBrightnessSettingMaximum" />
   <java-symbol type="integer" name="config_buttonBrightnessSettingDefault" />
+
+  <!-- Whether notify fingerprint client of successful cancelled authentication -->
+  <java-symbol type="bool" name="config_notifyClientOnFingerprintCancelSuccess" />
+
+  <!-- Extended Boosts for QPerformance -->
+
+  <!-- cpu boost on boot -->
+  <java-symbol type="bool" name="config_enableCpuBoostOnBoot" />
+  <java-symbol type="integer" name="onbootboost_duration" />
+  <java-symbol type="array" name="onbootboost_param_value" />
+
+  <!-- sRGB mode -->
+  <java-symbol type="string" name="config_srgb_path" />
+
+  <!-- Automatic brightness enhancements -->
+  <java-symbol type="integer" name="config_autoBrightnessBrighteningLightFastDebounce"/>
 </resources>

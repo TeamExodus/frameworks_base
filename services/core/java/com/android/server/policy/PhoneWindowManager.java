@@ -823,6 +823,8 @@ public class PhoneWindowManager implements WindowManagerPolicy {
     boolean mWifiDisplayConnected = false;
     int mWifiDisplayCustomRotation = -1;
 
+    private boolean mTopWindowIsKeyguard;
+
     private class PolicyHandler extends Handler {
         @Override
         public void handleMessage(Message msg) {
@@ -8490,18 +8492,30 @@ public class PhoneWindowManager implements WindowManagerPolicy {
                 mTopDockedOpaqueWindowState, mTopDockedOpaqueOrDimmingWindowState);
         mWindowManagerFuncs.getStackBounds(HOME_STACK_ID, mNonDockedStackBounds);
         mWindowManagerFuncs.getStackBounds(DOCKED_STACK_ID, mDockedStackBounds);
+
+        final boolean topWindowWasKeyguard = mTopWindowIsKeyguard;
+        mTopWindowIsKeyguard = (win.getAttrs().privateFlags & PRIVATE_FLAG_KEYGUARD) != 0;
         if ((mSystemDesignFlags & View.SYSTEM_DESIGN_FLAG_IMMERSIVE_NAV) != 0
                 && !mForcingShowNavBar) {
             // Enforce Immersive mode on the navigation bar.
             tmpVisibility |= View.SYSTEM_UI_FLAG_IMMERSIVE |
                     View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY |
                     View.SYSTEM_UI_FLAG_HIDE_NAVIGATION;
+            if (topWindowWasKeyguard && !mTopWindowIsKeyguard) {
+                mNavigationBarController.showTransient();
+                tmpVisibility |= View.NAVIGATION_BAR_TRANSIENT;
+            }
         }
         if ((mSystemDesignFlags & View.SYSTEM_DESIGN_FLAG_IMMERSIVE_STATUS) != 0) {
             // Enforce Immersive mode on the status bar.
             tmpVisibility |= View.SYSTEM_UI_FLAG_IMMERSIVE |
                     View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY |
                     View.SYSTEM_UI_FLAG_FULLSCREEN;
+
+            if (topWindowWasKeyguard && !mTopWindowIsKeyguard) {
+                mStatusBarController.showTransient();
+                tmpVisibility |= View.STATUS_BAR_TRANSIENT;
+            }
         }
         final int visibility = updateSystemBarsLw(win, mLastSystemUiFlags, tmpVisibility);
         final int diff = visibility ^ mLastSystemUiFlags;

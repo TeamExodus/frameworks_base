@@ -70,6 +70,9 @@
     <!-- Show camera affordance on Keyguard -->
     <bool name="config_keyguardShowCameraAffordance">true</bool>
 
+    <!-- Show voice affordance on Keyguard -->
+    <bool name="config_keyguardShowVoiceAffordance">true</bool>
+
     <!-- Whether we should use SRC drawing mode when drawing the scrim behind. If this flag is set,
          we change the canvas opacity so libhwui doesn't call glClear on our surface, and then we
          draw the scrim with SRC to overwrite the whole buffer, which saves us a layer of overdraw.
@@ -340,4 +343,6 @@
     <bool name="config_data_signal_control">false</bool>
 
     <bool name="config_always_hide_roaming_indicator">false</bool>
+    <!-- When true,show the AutoBrightness checkbox -->
+    <bool name="config_show_auto_brightness">false</bool>
 </resources>
