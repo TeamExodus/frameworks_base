@@ -127,7 +127,7 @@
     <integer name="quick_settings_brightness_dialog_long_timeout">4000</integer>
 
     <!-- Should "4G" be shown instead of "LTE" when the network is NETWORK_TYPE_LTE? -->
-    <bool name="config_show4GForLTE">true</bool>
+    <bool name="config_show4GForLTE">false</bool>
 
     <!-- Whether or not we also show rsrp level for LTE. -->
     <bool name="config_showRsrpSignalLevelforLTE">true</bool>
@@ -136,7 +136,7 @@
     <bool name="config_showCarrierLabel">false</bool>
 
     <!-- Whether or not we also show wifi activity in status bar. -->
-    <bool name="config_showWifiActivity">false</bool>
+    <bool name="config_showWifiActivity">true</bool>
 
     <!-- Show indicator for Wifi on but not connected. -->
     <bool name="config_showWifiIndicatorWhenEnabled">false</bool>
@@ -156,10 +156,10 @@
            and shows IMS and embms icons on the left side
            of the signal icon.
     -->
-    <integer name="status_bar_style">0</integer>
+    <integer name="status_bar_style">4</integer>
 
     <!-- Control whether status bar should fetch mobile signal icons from xml file dynamically -->
-    <bool name="config_read_icons_from_xml">false</bool>
+    <bool name="config_read_icons_from_xml">true</bool>
     <!-- Should "LTE"/"4G" be shown instead of "LTE+"/"4G+" when on NETWORK_TYPE_LTE_CA? -->
     <bool name="config_hideLtePlus">false</bool>
 
