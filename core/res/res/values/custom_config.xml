@@ -32,20 +32,6 @@
   <!-- Whether notify fingerprint client of successful cancelled authentication -->
   <bool name="config_notifyClientOnFingerprintCancelSuccess">false</bool>
 
-  <!-- sRGB sysfs path -->
-  <string name="config_srgb_path"></string>
-
-  <!-- Extended Boosts for QPerformance -->
-
-  <!-- Whether cpu boost is enabled right after boot -->
-  <bool name="config_enableCpuBoostOnBoot">false</bool>
-
-  <!-- Duration of the boost in seconds, default is 30 -->
-  <integer name="onbootboost_duration">0</integer>
-
-  <!-- Boost parameters which get passed to QPerformance -->
-  <integer-array name="onbootboost_param_value"/>
-
   <!-- Automatic brightness enhancements -->
   <integer name="config_autoBrightnessBrighteningLightFastDebounce">500</integer>
 </resources>
