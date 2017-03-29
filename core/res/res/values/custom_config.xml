@@ -29,9 +29,6 @@
        Must be in the range specified by minimum and maximum. -->
   <integer name="config_buttonBrightnessSettingDefault">255</integer>
 
-  <!-- Whether notify fingerprint client of successful cancelled authentication -->
-  <bool name="config_notifyClientOnFingerprintCancelSuccess">false</bool>
-
   <!-- Automatic brightness enhancements -->
   <integer name="config_autoBrightnessBrighteningLightFastDebounce">500</integer>
 </resources>
