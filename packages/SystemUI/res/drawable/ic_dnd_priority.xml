@@ -17,8 +17,8 @@
     android:insetLeft="2.5dip"
     android:insetRight="2.5dip">
     <vector
-            android:width="17.0dip"
-            android:height="17.0dip"
+            android:width="24dp"
+            android:height="24dp"
             android:viewportHeight="48.0"
             android:viewportWidth="48.0">
         <path
