@@ -456,13 +456,16 @@ public class PhoneWindowManager implements WindowManagerPolicy {
     WindowState mLastInputMethodWindow = null;
     WindowState mLastInputMethodTargetWindow = null;
 
-    private BoostFramework mPerf = null;
+    private BoostFramework mPerfKey = null;
+    private BoostFramework mPerfRotation = null;
     private boolean lIsPerfBoostEnabled;
     private int[] mBoostParamValWeak;
     private int[] mBoostParamValStrong;
     private boolean mKeypressBoostBlocked;
     private long mBoostEventTime = 0L;
     private int mLastBoostDuration = 0;
+    private final int ROTATION_BOOST_TIMEOUT = 5000 /*ms*/;
+    private final int ROTATION_BOOST_FADE = 300 /*ms*/;
 
     // FIXME This state is shared between the input reader and handler thread.
     // Technically it's broken and buggy but it has been like this for many years
@@ -830,6 +833,7 @@ public class PhoneWindowManager implements WindowManagerPolicy {
 
     // AOSPA constants
     private static final int MSG_DISPATCH_KEYPRESS_BOOST_UNBLOCK = 100;
+    private static final int MSG_RELEASE_ROTATION_LOCK = 101;
 
     boolean mWifiDisplayConnected = false;
     int mWifiDisplayCustomRotation = -1;
@@ -914,6 +918,9 @@ public class PhoneWindowManager implements WindowManagerPolicy {
                 }
                 case MSG_DISPATCH_KEYPRESS_BOOST_UNBLOCK:
                     mKeypressBoostBlocked = false;
+                    break;
+                case MSG_RELEASE_ROTATION_LOCK:
+                    mPerfRotation.perfLockRelease();
                     break;
             }
         }
@@ -1054,9 +1061,15 @@ public class PhoneWindowManager implements WindowManagerPolicy {
         private final Runnable mUpdateRotationRunnable = new Runnable() {
             @Override
             public void run() {
-                // send interaction hint to improve redraw performance
+                // send interaction hint and acquire perflock to improve redraw performance
                 mPowerManagerInternal.powerHint(PowerManagerInternal.POWER_HINT_INTERACTION, 0);
+                if (lIsPerfBoostEnabled) {
+                    mPerfRotation.perfLockAcquire(ROTATION_BOOST_TIMEOUT, mBoostParamValStrong);
+                }
                 updateRotation(false);
+                if (lIsPerfBoostEnabled) {
+                    mHandler.sendEmptyMessageDelayed(MSG_RELEASE_ROTATION_LOCK, ROTATION_BOOST_FADE);
+                }
             }
         };
 
@@ -1910,7 +1923,8 @@ public class PhoneWindowManager implements WindowManagerPolicy {
         lIsPerfBoostEnabled = mBoostParamValWeak.length != 0
                 && mBoostParamValStrong.length != 0;
         if (lIsPerfBoostEnabled) {
-            mPerf = new BoostFramework();
+            mPerfKey = new BoostFramework();
+            mPerfRotation = new BoostFramework();
         }
 
         // Init display burn-in protection
@@ -4628,7 +4642,7 @@ public class PhoneWindowManager implements WindowManagerPolicy {
         if (boostDuration != 0) {
             mLastBoostDuration = boostDuration;
             Slog.i(TAG, "Dispatching Keypress boost for " + boostDuration + " ms.");
-            mPerf.perfLockAcquire(boostDuration, boostParamVal);
+            mPerfKey.perfLockAcquire(boostDuration, boostParamVal);
 
             // Block Keypress boost
             mKeypressBoostBlocked = true;
@@ -6722,7 +6736,7 @@ public class PhoneWindowManager implements WindowManagerPolicy {
                     if (mKeypressBoostBlocked && mLastBoostDuration != 0 && reBoostByDiff) {
                         // We have a few milliseconds remaining from our previous boost, release current boost before triggering next one.
                         mHandler.removeMessages(MSG_DISPATCH_KEYPRESS_BOOST_UNBLOCK);
-                        mPerf.perfLockRelease();
+                        mPerfKey.perfLockRelease();
                         mKeypressBoostBlocked = false;
                     }
                 }
