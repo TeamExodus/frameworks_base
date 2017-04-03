@@ -103,12 +103,12 @@
 
     <!-- The default tiles to display in QuickSettings -->
     <string name="quick_settings_tiles_default" translatable="false">
-        wifi,cell,battery,dnd,flashlight,rotation,bt,airplane,immersive
+        wifi,cell,battery,dnd,alertslider,flashlight,rotation,bt,airplane,immersive
     </string>
 
     <!-- Tiles native to System UI. Order should match "quick_settings_tiles_default" -->
     <string name="quick_settings_tiles_stock" translatable="false">
-        wifi,cell,battery,dnd,flashlight,rotation,bt,airplane,immersive,nfc,location,hotspot,inversion,saver,work,cast,night
+        wifi,cell,battery,dnd,alertslider,flashlight,rotation,bt,airplane,immersive,nfc,location,hotspot,inversion,saver,work,cast,night
     </string>
 
     <!-- The tiles to display in QuickSettings -->
@@ -130,7 +130,7 @@
     <bool name="config_show4GForLTE">false</bool>
 
     <!-- Whether or not we also show rsrp level for LTE. -->
-    <bool name="config_showRsrpSignalLevelforLTE">true</bool>
+    <bool name="config_showRsrpSignalLevelforLTE">false</bool>
 
     <!-- Whether or not we show carrier label in notification panel. -->
     <bool name="config_showCarrierLabel">false</bool>
@@ -345,4 +345,11 @@
     <bool name="config_always_hide_roaming_indicator">false</bool>
     <!-- When true,show the AutoBrightness checkbox -->
     <bool name="config_show_auto_brightness">false</bool>
+
+    <!-- List of Carrier one mcc mncs-->
+    <string-array name="config_carrier_one_networks" translatable="false">
+    </string-array>
+
+    <integer-array name="carrier_one_strength_threshold_values">
+    </integer-array>
 </resources>

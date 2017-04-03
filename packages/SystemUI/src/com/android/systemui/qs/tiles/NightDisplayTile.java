@@ -17,25 +17,58 @@
 package com.android.systemui.qs.tiles;
 
 import android.app.ActivityManager;
+import android.content.Context;
 import android.content.Intent;
 import android.provider.Settings;
+import android.provider.Settings.Secure;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.LinearLayout;
 import android.widget.Switch;
 
 import com.android.internal.app.NightDisplayController;
 import com.android.internal.logging.MetricsLogger;
 import com.android.internal.logging.MetricsProto.MetricsEvent;
 import com.android.systemui.R;
+import com.android.systemui.qs.SecureSetting;
 import com.android.systemui.qs.QSTile;
+import com.android.systemui.volume.SegmentedButtons;
 
 public class NightDisplayTile extends QSTile<QSTile.BooleanState>
         implements NightDisplayController.Callback {
 
+    private static final String TAG = "NightDisplayTile";
+
+    private static final String SETTING_WARNING_HIDDEN = "night_display_warning_hidden";
+    private static final int WARNING_SHOW = 0;
+    private static final int WARNING_HIDE = 1;
+
+    private final SecureSetting mSetting;
+
     private NightDisplayController mController;
+    private NightDisplayDetailAdapter mDetailAdapter;
     private boolean mIsListening;
+
+    private boolean mUsingHwc2;
 
     public NightDisplayTile(Host host) {
         super(host);
         mController = new NightDisplayController(mContext, ActivityManager.getCurrentUser());
+        mDetailAdapter = new NightDisplayDetailAdapter();
+        mUsingHwc2 = mContext.getResources().getBoolean(
+                com.android.internal.R.bool.config_enableHWC2);
+        mSetting = new SecureSetting(mContext, mHandler, SETTING_WARNING_HIDDEN) {
+            @Override
+            protected void handleValueChanged(int value, boolean observedChange) {
+                // Do nothing
+            }
+        };
+    }
+
+    @Override
+    public DetailAdapter getDetailAdapter() {
+        return mDetailAdapter;
     }
 
     @Override
@@ -53,10 +86,15 @@ public class NightDisplayTile extends QSTile<QSTile.BooleanState>
         final boolean activated = !mState.value;
         MetricsLogger.action(mContext, getMetricsCategory(), activated);
         mController.setActivated(activated);
+        if (activated && mSetting.getValue() == WARNING_SHOW && !mUsingHwc2) {
+            showDetail(true);
+        }
     }
 
     @Override
     protected void handleUserSwitch(int newUserId) {
+        mSetting.setUserId(newUserId);
+
         // Stop listening to the old controller.
         if (mIsListening) {
             mController.setListener(null);
@@ -114,5 +152,72 @@ public class NightDisplayTile extends QSTile<QSTile.BooleanState>
     @Override
     public void onActivated(boolean activated) {
         refreshState();
+    }
+
+    private final class NightDisplayDetailAdapter implements DetailAdapter {
+
+        private SegmentedButtons mButtons;
+
+        @Override
+        public CharSequence getTitle() {
+            return getTileLabel();
+        }
+
+        @Override
+        public Boolean getToggleState() {
+            return mState.value;
+        }
+
+        @Override
+        public Intent getSettingsIntent() {
+            return getLongClickIntent();
+        }
+
+        @Override
+        public void setToggleState(boolean state) {
+            MetricsLogger.action(mContext, MetricsEvent.QS_NIGHT_DISPLAY, state);
+            mController.setActivated(state);
+            fireToggleStateChanged(state);
+            showDetail(state);
+        }
+
+        @Override
+        public int getMetricsCategory() {
+            return MetricsEvent.QS_NIGHT_DISPLAY;
+        }
+
+        @Override
+        public View createDetailView(Context context, View convertView, ViewGroup parent) {
+            final LinearLayout mDetails = (LinearLayout) (convertView != null
+                    ? convertView
+                    : LayoutInflater.from(context).inflate(
+                            R.layout.night_display_panel, parent, false));
+
+            if (convertView == null) {
+                 mButtons = (SegmentedButtons) mDetails.findViewById(R.id.night_display_buttons);
+                 mButtons.addButton(R.string.quick_settings_night_display_hide,
+                         R.string.quick_settings_night_display_hide,
+                         TAG);
+                 mButtons.setCallback(mButtonsCallback);
+             }
+
+             setToggleState(true);
+
+             return mDetails;
+        }
+
+        private final SegmentedButtons.Callback mButtonsCallback = new SegmentedButtons.Callback() {
+            @Override
+            public void onSelected(final Object value, boolean fromClick) {
+                if (value != null && mButtons.isShown() && fromClick) {
+                    mSetting.setValue(WARNING_HIDE);
+                    showDetail(false);
+                }
+            }
+
+            @Override
+            public void onInteraction() {
+            }
+        };
     }
 }

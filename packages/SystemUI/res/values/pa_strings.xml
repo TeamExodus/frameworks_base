@@ -57,6 +57,9 @@
     <string name="quick_settings_immersive_introduce_hide_nav">Hides only the status bar, leaving the navigation bar in its original position.</string>
     <string name="quick_settings_immersive_introduce_hide_status">Hides only the navigation bar, leaving the status bar in its original position.</string>
 
+    <!-- QuickSettings: Night Display -->
+    <string name="quick_settings_night_display_warning">Please note that Night Light may increase battery consumption.</string>
+    <string name="quick_settings_night_display_hide">Do not show this warning</string>
 
     <!-- Path data for portrait battery -->
     <string name="battery_portrait_path_full" translatable="false">M 5 2 H 19 V 21 H 5 V 2 Z</string>
@@ -87,6 +90,7 @@
     <!-- QuickSettings: Location detail panel title [CHAR LIMIT=NONE] -->
     <string name="quick_settings_location_detail_title">Location</string>
     <!-- QuickSettings: Location detail panel menu title [CHAR LIMIT=NONE] -->
+
     <string name="quick_settings_location_detail_menu_title">Select mode:</string>
     <!-- [CHAR LIMIT=30] Location detail panel, high accuracy location mode -->
     <string name="quick_settings_location_detail_mode_high_accuracy_title">High accuracy</string>
@@ -101,4 +105,16 @@
     <!-- [CHAR LIMIT=130] Location detail panel, description for sensors only mode -->
     <string name="quick_settings_location_detail_mode_sensors_only_description">Use GPS to determine your location</string>
 
+    <!-- QuickSettings: Alert slider tile related strings (re-using some of the do not disturb ones) [CHAR LIMIT=NONE] -->
+    <string name="quick_settings_alert_slider_unavailable">Alert slider tile not available</string>
+    <string name="quick_settings_alert_slider_detail_alarms_only_description">This blocks ALL sounds and vibrations except those from alarms and media playback.</string>
+    <string name="quick_settings_alert_slider_none_label">All notifications</string>
+    <string name="quick_settings_alert_slider_detail_disabled_message_description">Additional settings are not available when do not disturb is off.</string>
+
+    <string name="zen_footer_alert_slider_priority_only_summary">Specified notifications only</string>
+    <string name="zen_footer_alert_slider_alarms_only_summary">Alarms and media playback only</string>
+    <string name="zen_footer_alert_slider_no_interruptions_summary">No sounds and interruptions</string>
+
+    <string name="quick_settings_alert_slider_detail_priority_events_title">Events</string>
+    <string name="quick_settings_alert_slider_detail_priority_reminders_title">Reminders</string>
 </resources>

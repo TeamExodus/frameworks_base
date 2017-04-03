@@ -41,6 +41,7 @@ import android.os.RemoteException;
 import android.os.Vibrator;
 import android.provider.Settings;
 import android.service.notification.Condition;
+import android.text.TextUtils;
 import android.util.Log;
 import android.util.SparseArray;
 
@@ -100,6 +101,7 @@ public class VolumeDialogController {
     private boolean mDestroyed;
     private VolumePolicy mVolumePolicy;
     private boolean mShowDndTile = true;
+    private boolean mHasAlertSlider = false;
 
     public VolumeDialogController(Context context, ComponentName component) {
         mContext = context.getApplicationContext();
@@ -118,6 +120,9 @@ public class VolumeDialogController {
         mStreamTitles = mContext.getResources().getStringArray(R.array.volume_stream_titles);
         mVibrator = (Vibrator) mContext.getSystemService(Context.VIBRATOR_SERVICE);
         mHasVibrator = mVibrator != null && mVibrator.hasVibrator();
+        mHasAlertSlider = mContext.getResources().getBoolean(com.android.internal.R.bool.config_hasAlertSlider)
+                && !TextUtils.isEmpty(mContext.getResources().getString(com.android.internal.R.string.alert_slider_state_path))
+                && !TextUtils.isEmpty(mContext.getResources().getString(com.android.internal.R.string.alert_slider_uevent_match_path));
     }
 
     public AudioManager getAudioManager() {
@@ -136,7 +141,7 @@ public class VolumeDialogController {
             return;
         }
         setVolumePolicy(mVolumePolicy);
-        showDndTile(mShowDndTile);
+        showDndTile(mShowDndTile && !mHasAlertSlider);
         try {
             mMediaSessions.init();
         } catch (SecurityException e) {

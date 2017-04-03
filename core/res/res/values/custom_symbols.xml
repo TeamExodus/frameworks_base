@@ -27,13 +27,46 @@
   <!-- Extended Boosts for QPerformance -->
 
   <!-- cpu boost on boot -->
-  <java-symbol type="bool" name="config_enableCpuBoostOnBoot" />
   <java-symbol type="integer" name="onbootboost_duration" />
   <java-symbol type="array" name="onbootboost_param_value" />
+
+  <!-- Common boost params -->
+  <java-symbol type="array" name="qboost_strong_param_value" />
+  <java-symbol type="array" name="qboost_weak_param_value" />
+
+  <!-- FP unlock Boost -->
+  <java-symbol type="integer" name="fpunlockboost_duration" />
 
   <!-- sRGB mode -->
   <java-symbol type="string" name="config_srgb_path" />
 
   <!-- Automatic brightness enhancements -->
   <java-symbol type="integer" name="config_autoBrightnessBrighteningLightFastDebounce"/>
+
+  <!-- HWC2 -->
+  <java-symbol type="bool" name="config_enableHWC2" />
+
+  <!-- Input policy constants  -->
+  <java-symbol type="integer" name="config_deviceHardwareKeys" />
+  <java-symbol type="integer" name="config_doubleTapOnHomeKeyBehavior" />
+  <java-symbol type="integer" name="config_doubleTapOnMenuKeyBehavior" />
+  <java-symbol type="integer" name="config_doubleTapOnBackKeyBehavior" />
+  <java-symbol type="integer" name="config_doubleTapOnAssistKeyBehavior" />
+  <java-symbol type="integer" name="config_doubleTapOnAppSwitchKeyBehavior" />
+  <java-symbol type="integer" name="config_doubleTapOnCameraKeyBehavior" />
+  <java-symbol type="integer" name="config_longPressOnHomeKeyBehavior" />
+  <java-symbol type="integer" name="config_longPressOnMenuKeyBehavior" />
+  <java-symbol type="integer" name="config_longPressOnBackKeyBehavior" />
+  <java-symbol type="integer" name="config_longPressOnAssistKeyBehavior" />
+  <java-symbol type="integer" name="config_longPressOnAppSwitchKeyBehavior" />
+  <java-symbol type="integer" name="config_longPressOnCameraKeyBehavior" />
+
+  <!-- Internal default to navigation bar value -->
+  <java-symbol type="bool" name="config_defaultToNavigationBar" />
+
+  <!-- Alert slider. -->
+  <java-symbol type="string" name="alert_slider_state_path" />
+  <java-symbol type="string" name="alert_slider_uevent_match_path" />
+  <java-symbol type="bool" name="config_hasAlertSlider" />
+
 </resources>

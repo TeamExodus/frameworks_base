@@ -87,7 +87,6 @@ public class QSPanel extends LinearLayout implements Tunable, Callback {
         mContext = context;
 
         setOrientation(VERTICAL);
-
         if(MobileSignalController.isCarrierOneSupported()) {
             mSimSwitcherView = LayoutInflater.from(context).inflate(
                 R.layout.sim_switcher, this, false);

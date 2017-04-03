@@ -347,9 +347,8 @@ private:
 
         bool isUpToDate();
 
-        void addOverlay(const String8& path, const asset_path& overlay);
-        bool getOverlay(const String8& path, size_t idx, asset_path* out) const;
         void closeZipFromPath(const String8& zip);
+
     private:
         void closeZip(int idx);
 

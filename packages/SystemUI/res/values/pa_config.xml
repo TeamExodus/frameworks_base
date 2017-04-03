@@ -17,4 +17,8 @@
     <!-- Burn in protection -->
     <bool name="config_statusBarBurnInProtection">false</bool>
     <integer name="config_shift_interval">60</integer>
+
+    <!-- Nav bar button swapped ordering/layout -->
+    <string name="config_navBarLayoutSwapped" translatable="false">menu_ime,recent;home;back,space</string>
+
 </resources>

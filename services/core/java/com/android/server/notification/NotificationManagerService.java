@@ -835,6 +835,8 @@ public class NotificationManagerService extends SystemService {
                 mListeners.onUserUnlocked(user);
                 mRankerServices.onUserUnlocked(user);
                 mZenModeHelper.onUserUnlocked(user);
+            } else if (action.equals(CarrierConfigManager.ACTION_CARRIER_CONFIG_CHANGED)) {
+                    mCarrierConfig = mConfigManager.getConfig();
             }
         }
     };
@@ -1118,6 +1120,7 @@ public class NotificationManagerService extends SystemService {
         filter.addAction(Intent.ACTION_USER_REMOVED);
         filter.addAction(Intent.ACTION_USER_UNLOCKED);
         filter.addAction(Intent.ACTION_MANAGED_PROFILE_UNAVAILABLE);
+        filter.addAction(CarrierConfigManager.ACTION_CARRIER_CONFIG_CHANGED);
         getContext().registerReceiver(mIntentReceiver, filter);
 
         IntentFilter pkgFilter = new IntentFilter();
@@ -2908,12 +2911,11 @@ public class NotificationManagerService extends SystemService {
         boolean hasValidSound = false;
 
         boolean smsRingtone =  false;
-        if (mCarrierConfig == null) {
-            mCarrierConfig = mConfigManager.getConfig();
-        } else {
+        if (mCarrierConfig != null) {
             smsRingtone = mCarrierConfig.getBoolean(
                 CarrierConfigManager.KEY_CONFIG_SMS_RINGTONE_INCALL);
         }
+
         if ((disableEffects == null || (smsRingtone && mInCall))
                 && (record.getUserId() == UserHandle.USER_ALL ||
                     record.getUserId() == currentUser ||

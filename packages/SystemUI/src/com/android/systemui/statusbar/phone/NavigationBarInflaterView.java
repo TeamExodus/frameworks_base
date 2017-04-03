@@ -71,6 +71,7 @@ public class NavigationBarInflaterView extends FrameLayout implements TunerServi
     private View mLastRot90;
 
     private boolean mAlternativeOrder;
+    private boolean mSwappedOrder;
 
     public NavigationBarInflaterView(Context context, AttributeSet attrs) {
         super(context, attrs);
@@ -122,6 +123,9 @@ public class NavigationBarInflaterView extends FrameLayout implements TunerServi
     }
 
     protected String getDefaultLayout() {
+        if (mSwappedOrder) {
+            return mContext.getString(R.string.config_navBarLayoutSwapped);
+        }
         return mContext.getString(R.string.config_navBarLayout);
     }
 
@@ -172,6 +176,17 @@ public class NavigationBarInflaterView extends FrameLayout implements TunerServi
         if (v instanceof ReverseLinearLayout) {
             ((ReverseLinearLayout) v).setAlternativeOrder(mAlternativeOrder);
         }
+    }
+
+    public void setSwappedOrder(boolean swappedOrder) {
+        if (swappedOrder != mSwappedOrder) {
+            mSwappedOrder = swappedOrder;
+            updateSwappedOrder();
+        }
+    }
+
+    private void updateSwappedOrder() {
+        onTuningChanged(NAV_BAR_VIEWS, getDefaultLayout());
     }
 
     private void initiallyFill(ButtonDispatcher buttonDispatcher) {
