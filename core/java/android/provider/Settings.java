@@ -6690,6 +6690,11 @@ public final class Settings {
          */
         public static final String QUICK_SETTINGS_QUICK_PULL_DOWN =
                 "quick_settings_quick_pull_down";
+        /**
+         * Whether to include options in power menu for rebooting into recovery and bootloader
+         * @hide
+         */
+        public static final String EXTENDED_REBOOT = "extended_reboot";
 
         /**
          * Settings to reset on user request. They will fall back to their default value (0).

@@ -408,6 +408,20 @@ public final class PowerManager {
     public static final String REBOOT_RECOVERY_UPDATE = "recovery-update";
 
     /**
+     * The value to pass as the 'reason' argument to reboot() to reboot into
+     * recovery mode with no specified purpose, instead user has asked to only
+     * reboot to recovery.
+     * <p>
+     * Requires the {@link android.Manifest.permission#RECOVERY}
+     * permission (in addition to
+     * {@link android.Manifest.permission#REBOOT}).
+     * </p>
+     * @carlosavignano
+     * @hide
+     */
+    public static final String REBOOT_RECOVERY_USER = "recovery-user";
+
+    /**
      * The value to pass as the 'reason' argument to reboot() when device owner requests a reboot on
      * the device.
      * @hide
@@ -419,6 +433,13 @@ public final class PowerManager {
      * @hide
      */
     public static final String REBOOT_SAFE_MODE = "safemode";
+
+    /**
+     * The 'reason' value used when rebooting into bootloader
+     * @carlosavignano
+     * @hide
+     */
+    public static final String REBOOT_BOOTLOADER = "bootloader";
 
     /**
      * The value to pass as the 'reason' argument to android_reboot().

@@ -2103,10 +2103,12 @@
          "silent" = silent mode
          "users" = list of users
          "restart" = restart device
+         "screenshot" = screenshot
          -->
     <string-array translatable="false" name="config_globalActionsList">
         <item>power</item>
         <item>restart</item>
+        <item>screenshot</item>
         <item>bugreport</item>
         <item>users</item>
     </string-array>

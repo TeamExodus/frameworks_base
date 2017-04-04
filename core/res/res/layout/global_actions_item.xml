@@ -45,14 +45,14 @@
             android:layout_height="wrap_content"
             android:layout_gravity="top|start"
             android:gravity="center_vertical|start"
-            android:textAppearance="?android:attr/textAppearanceLarge"
+            android:textAppearance="@style/GlobalActionsItemTextLarge"
             />
         <TextView android:id="@+id/status"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="bottom|start"
             android:minHeight="26dp"
-            android:textAppearance="?android:attr/textAppearanceSmall"
+            android:textAppearance="@style/GlobalActionsItemTextSmall"
             />
     </LinearLayout>
 </LinearLayout>
