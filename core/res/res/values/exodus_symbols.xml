@@ -65,6 +65,8 @@
   <java-symbol type="string" name="global_action_current_user" />
   <java-symbol type="dimen" name="global_actions_avatar_size" />
 
+  <java-symbol type="bool" name="config_fingerprintRemoveClientOnCancel" />
+
   <!-- Notification and battery LED Pulse -->
   <java-symbol type="bool" name="config_ledCanPulse" />
 </resources>
