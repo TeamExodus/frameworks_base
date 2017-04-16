@@ -3646,6 +3646,14 @@ public final class Settings {
         };
 
         /**
+         * int boolean flag to show volte or not
+         *
+         * @see android.telephony.TelephonyManager.WifiCallingChoices
+         * @hide
+         */
+        public static final String SHOW_VOLTE = "show_volte";
+
+        /**
          * Network traffic indicator, goes from least to greatest significant bitwise
          * 0 = Display up-stream traffic if set
          * 1 = Display down-stream traffic if set

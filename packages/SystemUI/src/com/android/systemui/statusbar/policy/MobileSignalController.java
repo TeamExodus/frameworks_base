@@ -99,6 +99,8 @@ public class MobileSignalController extends SignalController<
     private boolean mIsCarrierOneNetwork = false;
     private String[] mCarrieroneMccMncs = null;
 
+    public com.android.systemui.exodus.ExodusSettingsObserver settingsObserver = null;
+
     // TODO: Reduce number of vars passed in, if we have the NetworkController, probably don't
     // need listener lists anymore.
     public MobileSignalController(Context context, Config config, boolean hasMobileData,
@@ -108,7 +110,8 @@ public class MobileSignalController extends SignalController<
         super("MobileSignalController(" + info.getSubscriptionId() + ")", context,
                 NetworkCapabilities.TRANSPORT_CELLULAR, callbackHandler,
                 networkController);
-
+        settingsObserver =
+                new com.android.systemui.exodus.ExodusSettingsObserver(new Handler(), mContext);
         mCallbackHandler = callbackHandler;
         mNetworkToIconLookup = new SparseArray<>();
         mConfig = config;
@@ -214,6 +217,9 @@ public class MobileSignalController extends SignalController<
                         | PhoneStateListener.LISTEN_DATA_CONNECTION_STATE
                         | PhoneStateListener.LISTEN_DATA_ACTIVITY
                         | PhoneStateListener.LISTEN_CARRIER_NETWORK_CHANGE);
+        if(settingsObserver!= null) {
+            settingsObserver.registerClass();
+        }
         if (mIsDataSignalControlEnabled) {
             mDataEnabledSettingObserver.register();
         }
@@ -224,9 +230,12 @@ public class MobileSignalController extends SignalController<
      */
     public void unregisterListener() {
         mPhone.listen(mPhoneStateListener, 0);
+        if(settingsObserver!= null) {
+            settingsObserver.unRegisterClass();
+        }
         if (mIsDataSignalControlEnabled) {
             mDataEnabledSettingObserver.unregister();
-       }
+        }
     }
     /**
      * Produce a mapping of data network types to icon groups for simple and quick use in
@@ -329,7 +338,6 @@ public class MobileSignalController extends SignalController<
             generateIconGroup();
         }
         MobileIconGroup icons = getIcons();
-
         String contentDescription = getStringIfExists(getContentDescription());
         String dataContentDescription = getStringIfExists(icons.mDataContentDescription);
         final boolean dataDisabled = mCurrentState.iconGroup == TelephonyIcons.DATA_DISABLED
@@ -443,10 +451,13 @@ public class MobileSignalController extends SignalController<
     }
 
     private boolean isMobileIms() {
-        if (mStyle != STATUS_BAR_STYLE_EXTENDED) {
+        if (mStyle != STATUS_BAR_STYLE_ANDROID_DEFAULT
+                && mStyle != STATUS_BAR_STYLE_EXTENDED) {
             return false;
         }
-
+        if(settingsObserver!= null && !settingsObserver.isVolteLabelEnabled()) {
+            return false;
+        }
         List<SubscriptionInfo> subInfos = SubscriptionManager.from(mContext)
                         .getActiveSubscriptionInfoList();
         if (subInfos != null) {

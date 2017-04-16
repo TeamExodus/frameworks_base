@@ -156,7 +156,7 @@
            and shows IMS and embms icons on the left side
            of the signal icon.
     -->
-    <integer name="status_bar_style">4</integer>
+    <integer name="status_bar_style">0</integer>
 
     <!-- Control whether status bar should fetch mobile signal icons from xml file dynamically -->
     <bool name="config_read_icons_from_xml">true</bool>
