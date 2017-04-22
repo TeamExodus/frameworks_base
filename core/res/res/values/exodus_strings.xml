@@ -46,4 +46,10 @@
          be a confirmation dialog.  This is the message. -->
     <string name="reboot_confirm" product="default">Your phone will restart.</string>
 
+     <!-- Global Actions --> 
+     <string name="global_action_search">Search</string> 
+     <string name="global_action_voicesearch">Voice Search</string> 
+
+    <!-- label for current user in phone options dialog -->
+    <string name="global_action_current_user">Current</string>
 </resources>

@@ -48,6 +48,7 @@ import android.os.storage.IMountService;
 import android.os.storage.IMountShutdownObserver;
 import android.system.ErrnoException;
 import android.system.Os;
+import android.provider.Settings; 
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.WindowManager;
@@ -146,14 +147,36 @@ public final class ShutdownThread extends Thread {
                 return;
             }
         }
+        
+        boolean showRebootOption = false;
+        String[] actionsArray;
+        String actions = Settings.Global.getStringForUser(context.getContentResolver(),
+                Settings.Global.POWER_MENU_ACTIONS, UserHandle.USER_CURRENT);
+        if (actions == null) {
+            actionsArray = context.getResources().getStringArray(
+                    com.android.internal.R.array.config_globalActionsList);
+        } else {
+            actionsArray = actions.split("\\|");
+        }
+
+        for (int i = 0; i < actionsArray.length; i++) {
+            if (actionsArray[i].equals("reboot")) {
+                showRebootOption = true;
+                break;
+            }
+        }
 
         final int longPressBehavior = context.getResources().getInteger(
                         com.android.internal.R.integer.config_longPressOnPowerBehavior);
-        final int resourceId = mRebootSafeMode
+        int resourceId = mRebootSafeMode
                 ? com.android.internal.R.string.reboot_safemode_confirm : mReboot
                 ? com.android.internal.R.string.reboot_confirm : (longPressBehavior == 2
                         ? com.android.internal.R.string.shutdown_confirm_question
                         : com.android.internal.R.string.shutdown_confirm);
+
+        if (showRebootOption && !mRebootSafeMode) {
+            resourceId = com.android.internal.R.string.reboot_confirm;
+        }
 
         Log.d(TAG, "Notifying thread to start shutdown longPressBehavior=" + longPressBehavior);
 

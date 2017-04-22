@@ -2107,10 +2107,11 @@
          -->
     <string-array translatable="false" name="config_globalActionsList">
         <item>power</item>
-        <item>restart</item>
+        <item>reboot</item>
         <item>screenshot</item>
-        <item>bugreport</item>
+        <item>airplane</item>
         <item>users</item>
+        <item>bugreport</item>
     </string-array>
 
     <!-- Number of milliseconds to hold a wake lock to ensure that drawing is fully

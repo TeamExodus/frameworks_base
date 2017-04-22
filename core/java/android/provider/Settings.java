@@ -3644,7 +3644,7 @@ public final class Settings {
                 }
             }
         };
-
+ 
         /**
          * int boolean flag to show volte or not
          *
@@ -7103,6 +7103,12 @@ public final class Settings {
          * The content:// style URL for global secure settings items.  Not public.
          */
         public static final Uri CONTENT_URI = Uri.parse("content://" + AUTHORITY + "/global");
+
+        /** 
+         * String to contain power menu actions 
+         * @hide 
+         */ 
+        public static final String POWER_MENU_ACTIONS = "power_menu_actions"; 
 
         /**
          * Whether users are allowed to add more users or guest from lockscreen.
