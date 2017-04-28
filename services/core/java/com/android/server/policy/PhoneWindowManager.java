@@ -3944,8 +3944,10 @@ public class PhoneWindowManager implements WindowManagerPolicy {
             case KEY_ACTION_HOME:
                 launchHomeFromHotKey();
                 break;
-            case KEY_ACTION_BACK:
             case KEY_ACTION_MENU:
+                triggerVirtualKeypress(KeyEvent.KEYCODE_MENU, false);
+                break;
+            case KEY_ACTION_BACK:
             case KEY_ACTION_IN_APP_SEARCH:
                 triggerVirtualKeypress(keyCode, false);
                 break;
@@ -4030,17 +4032,6 @@ public class PhoneWindowManager implements WindowManagerPolicy {
                     + ", virtualKey = "+ virtualKey + ", virtualHardKey = " + virtualHardKey
                     + ", navBarKey = " + navBarKey + ", fromSystem = " + fromSystem
                     + ", longPress = " + longPress);
-        }
-
-        // If the boot mode is power off alarm, we should not dispatch the several physical keys
-        // in power off alarm UI to avoid pausing power off alarm UI.
-        boolean isAlarmBoot = SystemProperties.getBoolean("ro.alarm_boot", false);
-        if (isAlarmBoot && (keyCode == KeyEvent.KEYCODE_HOME
-                || keyCode == KeyEvent.KEYCODE_SEARCH
-                || keyCode == KeyEvent.KEYCODE_MENU
-                || keyCode == KeyEvent.KEYCODE_APP_SWITCH
-                || keyCode == KeyEvent.KEYCODE_BACK)) {
-            return -1;
         }
 
         // If we think we might have a volume down & power key chord on the way
