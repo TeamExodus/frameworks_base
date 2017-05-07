@@ -18,6 +18,7 @@
 package com.android.server.power;
 
 import android.app.ActivityManagerNative;
+import android.app.AlarmManager;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.app.IActivityManager;
