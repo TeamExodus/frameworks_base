@@ -130,4 +130,25 @@ interface IImsCallSessionListener {
      */
     void callSessionSuppServiceReceived(in IImsCallSession session,
          in ImsSuppServiceNotification suppSrvNotification);
+
+    /**
+     * Device received RTT modify request from Remote UE
+     * @param session Requested session with updated mIsRttCall attribute
+     *                to desired value
+     */
+    void callSessionRttModifyRequestReceived(in IImsCallSession session,
+            in ImsCallProfile profile);
+
+    /* Device issued RTT modify request and inturn received response
+     * from Remote UE
+     * @param status Will be one of the following values from:
+     * - {@link Connection.VideoProvider}
+     */
+    void callSessionRttModifyResponseReceived(in int status);
+
+    /*
+     * While in call, device received RTT message from Remote UE
+     * @param rttMessage Received RTT message
+     */
+    void callSessionRttMessageReceived(in String rttMessage);
 }

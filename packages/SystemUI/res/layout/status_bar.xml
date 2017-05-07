@@ -79,12 +79,14 @@
 
             <include layout="@layout/system_icons" />
 
-            <com.android.systemui.BatteryLevelTextView android:id="@+id/battery_level"
-                android:layout_width="wrap_content"
+            <com.android.systemui.BatteryLevelTextView android:id="@+id/battery_level_text"
                 android:layout_height="match_parent"
-                android:gravity="center_vertical|start"
-                android:textAppearance="@style/TextAppearance.StatusBar.Clock"
-                android:layout_marginStart="3dp" />
+                android:layout_width="wrap_content"
+                android:gravity="center"
+                android:layout_gravity="center_vertical"
+                android:textColor="#ffffff"
+                android:textSize="@dimen/battery_level_text_size"
+                android:layout_marginStart="7dp"/>
 
             <com.android.systemui.statusbar.policy.Clock
                 android:id="@+id/clock"

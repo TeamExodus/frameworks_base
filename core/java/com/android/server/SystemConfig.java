@@ -24,6 +24,7 @@ import android.content.pm.FeatureInfo;
 import android.content.pm.PackageManager;
 import android.os.Environment;
 import android.os.Process;
+import android.os.SystemProperties;
 import android.os.storage.StorageManager;
 import android.os.SystemProperties;
 import android.util.ArrayMap;
@@ -217,6 +218,13 @@ public class SystemConfig {
         if (SystemProperties.getBoolean("persist.graphics.vulkan.disable", false)) {
             removeFeature(PackageManager.FEATURE_VULKAN_HARDWARE_LEVEL);
             removeFeature(PackageManager.FEATURE_VULKAN_HARDWARE_VERSION);
+        }
+        // Remove android extension pack for opengles version 3.0
+        int value = SystemProperties.getInt("ro.opengles.version", 0);
+        if (value > 0 && (value == 196608)) {
+           if (mAvailableFeatures.remove("android.hardware.opengles.aep") != null) {
+               Slog.d(TAG, "Removed android.hardware.opengles.aep feature for opengles 3.0");
+           }
         }
     }
 

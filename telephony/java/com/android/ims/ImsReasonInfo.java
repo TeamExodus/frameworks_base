@@ -309,6 +309,12 @@ public class ImsReasonInfo implements Parcelable {
     public static final int CODE_DATA_DISABLED = 1406;
 
     /**
+     * Indicates the registration attempt on IWLAN failed due to IKEv2 authetication failure
+     * during tunnel establishment.
+     */
+    public static final int CODE_IKEV2_AUTH_FAILURE = 1407;
+
+    /**
      * Network string error messages.
      * mExtraMessage may have these values.
      */

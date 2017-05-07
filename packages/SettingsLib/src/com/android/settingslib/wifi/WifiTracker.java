@@ -354,7 +354,7 @@ public class WifiTracker {
                         // If saved network not present in scan result then set its Rssi to MAX_VALUE
                         boolean apFound = false;
                         for (ScanResult result : results) {
-                            if (result.SSID.equals(accessPoint.getSsidStr())) {
+                            if (accessPoint.matches(result)) {
                                 apFound = true;
                                 break;
                             }
@@ -399,7 +399,7 @@ public class WifiTracker {
 
                     if (result.isPasspointNetwork()) {
                         WifiConfiguration config = mWifiManager.getMatchingWifiConfig(result);
-                        if (config != null) {
+                        if (config != null && config.SSID.equals(result.SSID)) {
                             accessPoint.update(config);
                         }
                     }

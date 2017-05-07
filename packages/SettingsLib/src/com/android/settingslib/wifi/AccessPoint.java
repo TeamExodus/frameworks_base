@@ -91,6 +91,7 @@ public class AccessPoint implements Comparable<AccessPoint> {
     private static final String KEY_PSKTYPE = "key_psktype";
     private static final String KEY_SCANRESULTCACHE = "key_scanresultcache";
     private static final String KEY_CONFIG = "key_config";
+    private static final String KEY_ACTIVE = "key_active";
 
     /**
      * These values are matched in string arrays -- changes must be kept in sync
@@ -126,6 +127,7 @@ public class AccessPoint implements Comparable<AccessPoint> {
     private AccessPointListener mAccessPointListener;
 
     private Object mTag;
+    private boolean isCurrentConnected = false;
 
     public AccessPoint(Context context, Bundle savedState) {
         mContext = context;
@@ -153,6 +155,9 @@ public class AccessPoint implements Comparable<AccessPoint> {
             for (ScanResult result : scanResultArrayList) {
                 mScanResultCache.put(result.BSSID, result);
             }
+        }
+        if (savedState.containsKey(KEY_ACTIVE)) {
+            isCurrentConnected = (savedState.getInt(KEY_ACTIVE) == 1);
         }
         update(mConfig, mInfo, mNetworkInfo);
         mRssi = getRssi();
@@ -239,7 +244,7 @@ public class AccessPoint implements Comparable<AccessPoint> {
 
     public boolean matches(WifiConfiguration config) {
         if (config.isPasspoint() && mConfig != null && mConfig.isPasspoint()) {
-            return config.FQDN.equals(mConfig.providerFriendlyName);
+            return config.FQDN.equals(mConfig.FQDN);
         } else {
             return ssid.equals(removeDoubleQuotes(config.SSID))
                     && security == getSecurity(config)
@@ -254,6 +259,28 @@ public class AccessPoint implements Comparable<AccessPoint> {
     public void clearConfig() {
         mConfig = null;
         networkId = WifiConfiguration.INVALID_NETWORK_ID;
+    }
+
+     public boolean isFils256Supported() {
+        Map<String, ScanResult> list = mScanResultCache.snapshot();
+        for (ScanResult result : list.values()) {
+             if (result.capabilities.contains("FILS-SHA256-CCMP") ||
+                 result.capabilities.contains("FILS-SHA256")) {
+                 return true;
+             }
+        }
+        return false;
+    }
+
+    public boolean isFils384Supported() {
+        Map<String, ScanResult> list = mScanResultCache.snapshot();
+        for (ScanResult result : list.values()) {
+             if (result.capabilities.contains("FILS-SHA384-CCMP") ||
+                 result.capabilities.contains("FILS-SHA384")) {
+                 return true;
+             }
+        }
+        return false;
     }
 
     public WifiInfo getInfo() {
@@ -356,7 +383,7 @@ public class AccessPoint implements Comparable<AccessPoint> {
     }
 
     public DetailedState getDetailedState() {
-        if (mNetworkInfo != null) {
+        if (mNetworkInfo != null && isCurrentConnected) {
             return mNetworkInfo.getDetailedState();
         }
         Log.w(TAG, "NetworkInfo is null, cannot return detailed state");
@@ -443,7 +470,7 @@ public class AccessPoint implements Comparable<AccessPoint> {
         if (WifiTracker.sVerboseLogging > 0) {
             // Add RSSI/band information for this config, what was seen up to 6 seconds ago
             // verbose WiFi Logging is only turned on thru developers settings
-            if (mInfo != null && mNetworkInfo != null) { // This is the active connection
+            if (mInfo != null && mNetworkInfo != null && isCurrentConnected) { // This is the active connection
                 summary.append(" f=" + Integer.toString(mInfo.getFrequency()));
             }
             summary.append(" " + getVisibilityStatus());
@@ -606,8 +633,8 @@ public class AccessPoint implements Comparable<AccessPoint> {
      */
     public boolean isActive() {
         return mNetworkInfo != null &&
-                (networkId != WifiConfiguration.INVALID_NETWORK_ID ||
-                 mNetworkInfo.getState() != State.DISCONNECTED);
+                ((networkId != WifiConfiguration.INVALID_NETWORK_ID ||
+                 mNetworkInfo.getState() != State.DISCONNECTED) && isCurrentConnected);
     }
 
     public boolean isConnectable() {
@@ -616,7 +643,8 @@ public class AccessPoint implements Comparable<AccessPoint> {
 
     public boolean isEphemeral() {
         return mInfo != null && mInfo.isEphemeral() &&
-                mNetworkInfo != null && mNetworkInfo.getState() != State.DISCONNECTED;
+                mNetworkInfo != null && isCurrentConnected &&
+                mNetworkInfo.getState() != State.DISCONNECTED;
     }
 
     public boolean isPasspoint() {
@@ -701,6 +729,7 @@ public class AccessPoint implements Comparable<AccessPoint> {
         if (mNetworkInfo != null) {
             savedState.putParcelable(KEY_NETWORKINFO, mNetworkInfo);
         }
+        savedState.putInt(KEY_ACTIVE, (isCurrentConnected ? 1 : 0));
     }
 
     public void setListener(AccessPointListener listener) {
@@ -717,9 +746,10 @@ public class AccessPoint implements Comparable<AccessPoint> {
 
             int oldLevel = getLevel();
             int oldRssi = getRssi();
+            int newRssi = result.level;
             mSeen = getSeen();
-            mRssi = (getRssi() + oldRssi)/2;
-            int newLevel = getLevel();
+            mRssi = (newRssi + oldRssi)/2;
+            int newLevel = WifiManager.calculateSignalLevel(mRssi, SIGNAL_LEVELS);
 
             if (newLevel > 0 && newLevel != oldLevel && mAccessPointListener != null) {
                 mAccessPointListener.onLevelChanged(this);
@@ -741,17 +771,19 @@ public class AccessPoint implements Comparable<AccessPoint> {
     boolean update(WifiConfiguration config, WifiInfo info, NetworkInfo networkInfo) {
         boolean reorder = false;
         if (info != null && isInfoForThisAccessPoint(config, info)) {
-            reorder = (mInfo == null);
+            reorder = !isCurrentConnected;
             mRssi = info.getRssi();
             mInfo = info;
             mNetworkInfo = networkInfo;
+            isCurrentConnected = true;
             if (mAccessPointListener != null) {
                 mAccessPointListener.onAccessPointChanged(this);
             }
         } else if (mInfo != null) {
             reorder = true;
-            mInfo = null;
-            mNetworkInfo = null;
+            if (isCurrentConnected) {
+                isCurrentConnected = false;
+            }
             if (mAccessPointListener != null) {
                 mAccessPointListener.onAccessPointChanged(this);
             }
@@ -790,16 +822,19 @@ public class AccessPoint implements Comparable<AccessPoint> {
         if (state == DetailedState.CONNECTED) {
             IWifiManager wifiManager = IWifiManager.Stub.asInterface(
                     ServiceManager.getService(Context.WIFI_SERVICE));
-            Network nw;
+            NetworkCapabilities nc = null;
 
             try {
-                nw = wifiManager.getCurrentNetwork();
-            } catch (RemoteException e) {
-                nw = null;
-            }
-            NetworkCapabilities nc = cm.getNetworkCapabilities(nw);
-            if (nc != null && !nc.hasCapability(nc.NET_CAPABILITY_VALIDATED)) {
-                return context.getString(R.string.wifi_connected_no_internet);
+                nc = cm.getNetworkCapabilities(wifiManager.getCurrentNetwork());
+            } catch (RemoteException e) {}
+
+            if (nc != null) {
+                if (nc.hasCapability(nc.NET_CAPABILITY_CAPTIVE_PORTAL)) {
+                    return context.getString(
+                        com.android.internal.R.string.network_available_sign_in);
+                } else if (!nc.hasCapability(NetworkCapabilities.NET_CAPABILITY_VALIDATED)) {
+                    return context.getString(R.string.wifi_connected_no_internet);
+                }
             }
         }
         if (state == null) {

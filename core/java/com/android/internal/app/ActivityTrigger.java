@@ -59,8 +59,8 @@ public class ActivityTrigger
         native_at_startProcessActivity(process, pid);
     }
 
-    /** &hide */
-    public void activityStartTrigger(Intent intent, ActivityInfo acInfo, ApplicationInfo appInfo) {
+    public void activityStartTrigger(Intent intent, ActivityInfo acInfo,
+            ApplicationInfo appInfo, boolean IsInFullScreen) {
         ComponentName cn = intent.getComponent();
         int overrideFlags = 0;
         String activity = null;
@@ -73,19 +73,54 @@ public class ActivityTrigger
         if((overrideFlags & FLAG_HARDWARE_ACCELERATED) != 0) {
             acInfo.flags |= ActivityInfo.FLAG_HARDWARE_ACCELERATED;
         }
-        if((overrideFlags & FLAG_OVERRIDE_RESOLUTION) != 0) {
-            appInfo.setOverrideRes(1);
+        //Overrride density only if Activity is started/resumed in fullscreen
+        if(IsInFullScreen) {
+            Log.d(TAG, "activityStartTrigger: Activity is Triggerred in full screen "
+                    + appInfo);
+            if((overrideFlags & FLAG_OVERRIDE_RESOLUTION) != 0) {
+                Log.e(TAG, "activityStartTrigger: whiteListed " + activity +
+                        " appInfo.flags - " + Integer.toHexString(appInfo.flags));
+                appInfo.setAppOverrideDensity();
+                appInfo.setAppWhiteListed(1);
+            } else {
+                appInfo.setOverrideDensity(0);
+                appInfo.setAppWhiteListed(0);
+                Log.e(TAG, "activityStartTrigger: not whiteListed" + activity);
+            }
+        } else {
+            Log.d(TAG, "activityStartTrigger: Activity is not Triggerred in full screen "
+                    + appInfo);
+            appInfo.setOverrideDensity(0);
         }
     }
 
     /** &hide */
-    public void activityResumeTrigger(Intent intent, ActivityInfo acInfo, ApplicationInfo appInfo) {
+    public void activityResumeTrigger(Intent intent, ActivityInfo acInfo,
+            ApplicationInfo appInfo, boolean IsInFullScreen) {
         ComponentName cn = intent.getComponent();
         String activity = null;
 
         if (cn != null)
             activity = cn.flattenToString() + "/" + appInfo.versionCode;
         native_at_resumeActivity(activity);
+
+        //Overrride density only if Activity is started/resumed in fullscreen
+        if(IsInFullScreen) {
+            Log.d(TAG, "activityResumeTrigger: The activity in " + appInfo +
+                    " is now in focus and seems to be in full-screen mode");
+            if(appInfo.isAppWhiteListed()) {
+                Log.e(TAG, "activityResumeTrigger: whiteListed " + activity +
+                        " appInfo.flags - " + Integer.toHexString(appInfo.flags));
+                appInfo.setAppOverrideDensity();
+            } else {
+                appInfo.setOverrideDensity(0);
+                Log.e(TAG, "activityResumeTrigger: not whiteListed" + activity);
+            }
+        } else {
+            Log.d(TAG, "activityResumeTrigger: Activity is not Triggerred in full screen "
+                    + appInfo);
+            appInfo.setOverrideDensity(0);
+        }
     }
 
     public void activityPauseTrigger(Intent intent, ActivityInfo acInfo, ApplicationInfo appInfo) {

@@ -45,6 +45,8 @@ public class TetherInterfaceStateMachine extends StateMachine {
     private static final int USB_PREFIX_LENGTH = 24;
     private static final String WIFI_HOST_IFACE_ADDR = "192.168.43.1";
     private static final int WIFI_HOST_IFACE_PREFIX_LENGTH = 24;
+    private static final String WIGIG_HOST_IFACE_ADDR = "192.168.50.1";
+    private static final int WIGIG_HOST_IFACE_PREFIX_LENGTH = 24;
 
     private final static String TAG = "TetherInterfaceSM";
     private final static boolean DBG = false;
@@ -88,6 +90,7 @@ public class TetherInterfaceStateMachine extends StateMachine {
     private final String mIfaceName;
     private final int mInterfaceType;
     private final IPv6TetheringInterfaceServices mIPv6TetherSvc;
+    private boolean mIpv6TetheringEnabled;
 
     private int mLastError;
     private String mMyUpstreamIfaceName;  // may change over time
@@ -102,6 +105,7 @@ public class TetherInterfaceStateMachine extends StateMachine {
         mIfaceName = ifaceName;
         mInterfaceType = interfaceType;
         mIPv6TetherSvc = new IPv6TetheringInterfaceServices(mIfaceName, mNMService);
+        mIpv6TetheringEnabled = false;
         mLastError = ConnectivityManager.TETHER_ERROR_NO_ERROR;
 
         mInitialState = new InitialState();
@@ -114,6 +118,12 @@ public class TetherInterfaceStateMachine extends StateMachine {
         setInitialState(mInitialState);
     }
 
+    public TetherInterfaceStateMachine(String ifaceName, Looper looper, int interfaceType,
+                    INetworkManagementService nMService, INetworkStatsService statsService,
+                    IControlsTethering tetherController,boolean Ipv6TetheringEnabled) {
+           this(ifaceName,looper,interfaceType,nMService,statsService,tetherController);
+           mIpv6TetheringEnabled = Ipv6TetheringEnabled;
+    }
     public int interfaceType() {
         return mInterfaceType;
     }
@@ -130,6 +140,9 @@ public class TetherInterfaceStateMachine extends StateMachine {
         } else if (mInterfaceType == ConnectivityManager.TETHERING_WIFI) {
             ipAsString = WIFI_HOST_IFACE_ADDR;
             prefixLen = WIFI_HOST_IFACE_PREFIX_LENGTH;
+        } else if (mInterfaceType == ConnectivityManager.TETHERING_WIGIG) {
+            ipAsString = WIGIG_HOST_IFACE_ADDR;
+            prefixLen = WIGIG_HOST_IFACE_PREFIX_LENGTH;
         } else {
             // Nothing to do, BT does this elsewhere.
             return true;
@@ -214,7 +227,7 @@ public class TetherInterfaceStateMachine extends StateMachine {
                 return;
             }
 
-            if (!mIPv6TetherSvc.start()) {
+            if (mIpv6TetheringEnabled && !mIPv6TetherSvc.start()) {
                 Log.e(TAG, "Failed to start IPv6TetheringInterfaceServices");
             }
 

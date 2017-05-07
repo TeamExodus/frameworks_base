@@ -101,6 +101,12 @@ public class BatteryMeterDrawable extends Drawable implements
     private int mLevel = -1;
     private boolean mListening;
 
+    private static final int ADD_LEVEL = 10;
+    private static final int ANIM_DURATION = 500;
+    private int mAnimOffset;
+    private boolean mCharging;
+    private boolean mBatteryPct;
+
     private boolean mIsAnimating; // stores charge-animation status to remove callbacks
 
     private float mTextX, mTextY; // precalculated position for drawText() to appear centered
@@ -147,6 +153,7 @@ public class BatteryMeterDrawable extends Drawable implements
         }
         levels.recycle();
         colors.recycle();
+        mBatteryPct = context.getResources().getBoolean(R.bool.config_showBatteryPercentage);
         updateShowPercent();
         mWarningString = context.getString(R.string.battery_meter_very_low_overlay_symbol);
         mCriticalLevel = mContext.getResources().getInteger(
@@ -317,8 +324,8 @@ public class BatteryMeterDrawable extends Drawable implements
     }
 
     private void updateShowPercent() {
-        mShowPercent = Settings.System.getInt(mContext.getContentResolver(),
-                Settings.System.STATUS_BAR_SHOW_BATTERY_PERCENT, 0) == 1;
+        mShowPercent = (0 != Settings.System.getInt(mContext.getContentResolver(),
+                SHOW_PERCENT_SETTING, 0)) && !mBatteryPct;
     }
 
     private int getColorForLevel(int percent) {

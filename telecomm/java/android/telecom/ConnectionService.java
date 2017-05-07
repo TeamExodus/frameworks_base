@@ -563,6 +563,14 @@ public abstract class ConnectionService extends Service {
                 mAdapter.removeExtras(id, keys);
             }
         }
+
+        @Override
+        public void onConferenceMergeFailed(Conference c) {
+            String id = mIdByConference.get(c);
+            if (id != null) {
+                mAdapter.onConferenceMergeFailed(id);
+            }
+        }
     };
 
     private final Connection.Listener mConnectionListener = new Connection.Listener() {
@@ -797,6 +805,7 @@ public abstract class ConnectionService extends Service {
                         connection.getState(),
                         connection.getConnectionCapabilities(),
                         connection.getConnectionProperties(),
+                        connection.getSupportedAudioRoutes(),
                         connection.getAddress(),
                         connection.getAddressPresentation(),
                         connection.getCallerDisplayName(),
@@ -1207,6 +1216,7 @@ public abstract class ConnectionService extends Service {
                     connection.getState(),
                     connection.getConnectionCapabilities(),
                     connection.getConnectionProperties(),
+                    connection.getSupportedAudioRoutes(),
                     connection.getAddress(),
                     connection.getAddressPresentation(),
                     connection.getCallerDisplayName(),

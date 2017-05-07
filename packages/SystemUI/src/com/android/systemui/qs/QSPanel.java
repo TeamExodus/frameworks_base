@@ -109,7 +109,6 @@ public class QSPanel extends LinearLayout implements Tunable, Callback {
                 (ImageView) findViewById(R.id.brightness_icon),
                 (ToggleSlider) findViewById(R.id.brightness_slider),
                 (CheckBox) findViewById(R.id.brightness_auto));
-
     }
 
     protected void setupTileLayout() {
@@ -527,6 +526,10 @@ public class QSPanel extends LinearLayout implements Tunable, Callback {
 
     public QSFooter getFooter() {
         return mFooter;
+    }
+
+    public void showDeviceMonitoringDialog() {
+        mFooter.showDeviceMonitoringDialog();
     }
 
     private class H extends Handler {

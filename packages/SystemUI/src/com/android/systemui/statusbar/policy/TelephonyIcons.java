@@ -53,11 +53,11 @@ class TelephonyIcons {
     static final int QS_TELEPHONY_NO_NETWORK = R.drawable.ic_qs_signal_no_signal;
 
     static final int[][] QS_TELEPHONY_SIGNAL_STRENGTH = {
-        { R.drawable.ic_qs_signal_0,
-          R.drawable.ic_qs_signal_1,
-          R.drawable.ic_qs_signal_2,
-          R.drawable.ic_qs_signal_3,
-          R.drawable.ic_qs_signal_4 },
+        { R.drawable.ic_qs_signal_full_0,
+          R.drawable.ic_qs_signal_full_1,
+          R.drawable.ic_qs_signal_full_2,
+          R.drawable.ic_qs_signal_full_3,
+          R.drawable.ic_qs_signal_full_4 },
         { R.drawable.ic_qs_signal_full_0,
           R.drawable.ic_qs_signal_full_1,
           R.drawable.ic_qs_signal_full_2,
@@ -118,8 +118,6 @@ class TelephonyIcons {
           R.drawable.ic_qs_signal_carrier_network_change_animation,
           R.drawable.ic_qs_signal_carrier_network_change_animation }
     };
-
-    static final int QS_DATA_R = R.drawable.ic_qs_signal_r;
 
     //***** Data connection icons
 
@@ -239,7 +237,7 @@ class TelephonyIcons {
     static final int QS_DATA_LTE_PLUS = R.drawable.ic_qs_signal_lte_plus;
 
     static final int FLIGHT_MODE_ICON = R.drawable.stat_sys_airplane_mode;
-    static final int ROAMING_ICON = R.drawable.stat_sys_data_fully_connected_roam;
+    static final int ROAMING_ICON = R.drawable.stat_sys_roaming;
     static final int ICON_LTE = R.drawable.stat_sys_data_fully_connected_lte;
     static final int ICON_LTE_PLUS = R.drawable.stat_sys_data_fully_connected_lte_plus;
     static final int ICON_G = R.drawable.stat_sys_data_fully_connected_g;
@@ -548,6 +546,7 @@ class TelephonyIcons {
                 break;
             case TelephonyManager.NETWORK_TYPE_LTE:
             case TelephonyManager.NETWORK_TYPE_LTE_CA:
+            case TelephonyManager.NETWORK_TYPE_IWLAN:
                 if (!show4GforLte || MobileSignalController.isCarrierOneSupported()) {
                     mSelectedDataActivityIndex[slot] = DATA_TYPE_LTE;
                     mSelectedDataTypeIcon[slot] = mRes.getIdentifier(
@@ -948,21 +947,6 @@ class TelephonyIcons {
             TelephonyIcons.ICON_LTE_PLUS,
             true,
             TelephonyIcons.QS_DATA_LTE_PLUS
-            );
-
-    static final MobileIconGroup ROAMING = new MobileIconGroup(
-            "Roaming",
-            TelephonyIcons.TELEPHONY_SIGNAL_STRENGTH_ROAMING,
-            TelephonyIcons.QS_TELEPHONY_SIGNAL_STRENGTH,
-            AccessibilityContentDescriptions.PHONE_SIGNAL_STRENGTH,
-            0, 0,
-            TelephonyIcons.TELEPHONY_NO_NETWORK,
-            TelephonyIcons.QS_TELEPHONY_NO_NETWORK,
-            AccessibilityContentDescriptions.PHONE_SIGNAL_STRENGTH[0],
-            R.string.accessibility_data_connection_roaming,
-            TelephonyIcons.ROAMING_ICON,
-            false,
-            TelephonyIcons.QS_DATA_R
             );
 
     static final MobileIconGroup DATA_DISABLED = new MobileIconGroup(

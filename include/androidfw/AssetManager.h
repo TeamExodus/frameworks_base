@@ -72,6 +72,12 @@ public:
     static const char* RESOURCES_FILENAME;
     static const char* IDMAP_BIN;
     static const char* OVERLAY_DIR;
+    /*
+     * If OVERLAY_THEME_DIR_PROPERTY is set, search for runtime resource overlay
+     * APKs in OVERLAY_DIR/<value of OVERLAY_THEME_DIR_PROPERTY> in addition to
+     * OVERLAY_DIR.
+     */
+    static const char* OVERLAY_THEME_DIR_PROPERTY;
     static const char* TARGET_PACKAGE_NAME;
     static const char* TARGET_APK_PATH;
     static const char* IDMAP_DIR;
@@ -347,8 +353,9 @@ private:
 
         bool isUpToDate();
 
+        void addOverlay(const String8& path, const asset_path& overlay);
+        bool getOverlay(const String8& path, size_t idx, asset_path* out) const;
         void closeZipFromPath(const String8& zip);
-
     private:
         void closeZip(int idx);
 

@@ -592,6 +592,25 @@ public final class ShutdownThread extends Thread {
             uncrypt();
         }
 
+        // If it is alarm boot and encryption status, power off alarm status will
+        // be set to handled when device go to shutdown or reboot.
+        boolean isAlarmBoot = SystemProperties.getBoolean("ro.alarm_boot", false);
+        String cryptState = SystemProperties.get("vold.decrypt");
+
+        if (isAlarmBoot &&
+                ("trigger_restart_min_framework".equals(cryptState) ||
+                "1".equals(cryptState))) {
+            AlarmManager.writePowerOffAlarmFile(AlarmManager.POWER_OFF_ALARM_HANDLE_FILE,
+                    AlarmManager.POWER_OFF_ALARM_HANDLED);
+        }
+
+        // If it is factory data reset, value in POWER_OFF_ALARM_TIMEZONE_FILE will be cleared.
+        if (mReboot && PowerManager.REBOOT_RECOVERY.equals(mReason)) {
+            AlarmManager.writePowerOffAlarmFile(AlarmManager.POWER_OFF_ALARM_TIMEZONE_FILE, "");
+        } else {
+            AlarmManager.writePowerOffAlarmFile(AlarmManager.POWER_OFF_ALARM_TIMEZONE_FILE,
+                    SystemProperties.get("persist.sys.timezone"));
+        }
         rebootOrShutdown(mContext, mReboot, mReason);
     }
 
@@ -645,7 +664,7 @@ public final class ShutdownThread extends Thread {
                             bluetooth.getState() == BluetoothAdapter.STATE_OFF;
                     if (!bluetoothOff) {
                         Log.w(TAG, "Disabling Bluetooth...");
-                        bluetooth.disable(false);  // disable but don't persist new state
+                        bluetooth.disable(mContext.getPackageName(), false);  // disable but don't persist new state
                     }
                 } catch (RemoteException ex) {
                     Log.e(TAG, "RemoteException during bluetooth shutdown", ex);
