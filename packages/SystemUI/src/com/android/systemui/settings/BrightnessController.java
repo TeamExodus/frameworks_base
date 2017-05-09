@@ -333,25 +333,6 @@ public class BrightnessController implements ToggleSlider.Listener {
                 });
     }
 
-    public BrightnessController(Context context, ImageView icon,
-            ToggleSlider control, CheckBox autoBrightness) {
-        this(context, icon, control);
-        mAutoBrightness = autoBrightness;
-        mAutoBrightness.setChecked(Settings.System.getInt(
-            mContext.getContentResolver(), SCREEN_BRIGHTNESS_MODE,
-            SCREEN_BRIGHTNESS_MODE_MANUAL) != SCREEN_BRIGHTNESS_MODE_MANUAL);
-        mAutoBrightness.setOnCheckedChangeListener(new OnCheckedChangeListener() {
-            @Override
-            public void onCheckedChanged(CompoundButton buttonView,
-                boolean isChecked) {
-                Settings.System.putInt(mContext.getContentResolver(),
-                    SCREEN_BRIGHTNESS_MODE,
-                    isChecked ? SCREEN_BRIGHTNESS_MODE_AUTOMATIC :
-                    SCREEN_BRIGHTNESS_MODE_MANUAL);
-                    }
-                });
-    }
-
     public void setBackgroundLooper(Looper backgroundLooper) {
         mBackgroundHandler = new Handler(backgroundLooper);
     }

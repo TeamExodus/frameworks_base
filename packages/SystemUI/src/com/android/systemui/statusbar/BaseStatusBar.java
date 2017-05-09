@@ -1258,6 +1258,12 @@ public abstract class BaseStatusBar extends SystemUI implements
     }
 
     @Override
+    public void onGutsClosed(NotificationGuts guts) {
+        mStackScroller.onHeightChanged(null, true /* needsAnimation */);
+        mNotificationGutsExposed = null;
+    }
+
+    @Override
     public void showRecentApps(boolean triggeredFromAltTab, boolean fromHome) {
         int msg = MSG_SHOW_RECENT_APPS;
         mHandler.removeMessages(msg);

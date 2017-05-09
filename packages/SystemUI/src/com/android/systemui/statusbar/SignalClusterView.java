@@ -820,11 +820,10 @@ public class SignalClusterView
             mMobileType.setVisibility(mMobileTypeId != 0 ? View.VISIBLE : View.GONE);
             mDataActivity.setVisibility(mDataActivityId != 0 ? View.VISIBLE : View.GONE);
             mMobileActivity.setVisibility(mMobileActivityId != 0 ? View.VISIBLE : View.GONE);
+            mMobileRoaming.setVisibility(mRoaming ? View.VISIBLE : View.GONE);
             mDataNetworkType.setVisibility(mDataNetworkTypeId != 0 ? View.VISIBLE
                     : View.GONE);
             mMobileEmbms.setVisibility(mMobileEmbmsId != 0 ? View.VISIBLE : View.GONE);
-            mMobileRoaming.setVisibility(mRoaming ? View.VISIBLE : View.GONE);
-
             return mMobileVisible;
         }
 

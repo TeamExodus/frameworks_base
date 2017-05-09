@@ -104,7 +104,6 @@ public class BatteryMeterDrawable extends Drawable implements
     private static final int ADD_LEVEL = 10;
     private static final int ANIM_DURATION = 500;
     private int mAnimOffset;
-    private boolean mCharging;
     private boolean mBatteryPct;
 
     private boolean mIsAnimating; // stores charge-animation status to remove callbacks
