@@ -42,7 +42,7 @@ public class ExodusSettingsObserver extends ContentObserver {
     private void observe() {
         resolver.registerContentObserver(Settings.System
                 .getUriFor(Settings.System.SHOW_VOLTE),
-                false, this, UserHandle.USER_ALL);
+                true, this, UserHandle.USER_ALL);
         setVolteLabelEnabled();
     }
 
@@ -64,7 +64,7 @@ public class ExodusSettingsObserver extends ContentObserver {
 
     public void setVolteLabelEnabled() {
         isVolteEnabled = Settings.System.getIntForUser(resolver,
-            Settings.System.SHOW_VOLTE, 0,
+            Settings.System.SHOW_VOLTE, 1,
             UserHandle.USER_CURRENT) == 1;
     }
 

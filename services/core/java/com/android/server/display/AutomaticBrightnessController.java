@@ -200,12 +200,8 @@ class AutomaticBrightnessController {
     public AutomaticBrightnessController(Callbacks callbacks, Looper looper,
             SensorManager sensorManager, Spline autoBrightnessSpline, int lightSensorWarmUpTime,
             int brightnessMin, int brightnessMax, float dozeScaleFactor,
-<<<<<<< HEAD
-            int lightSensorRate, long brighteningLightDebounceConfig,
-            long brighteningLightFastDebounceConfig,
-=======
             int lightSensorRate, int initialLightSensorRate, long brighteningLightDebounceConfig,
->>>>>>> 9f8c8663ff0ed5477930608b0aca871ecc883d66
+            long brighteningLightFastDebounceConfig,
             long darkeningLightDebounceConfig, boolean resetAmbientLuxAfterWarmUpConfig,
             int ambientLightHorizon, float autoBrightnessAdjustmentMaxGamma,
             boolean activeDozeLightSensor, boolean useNewSensorSamplesForDoze,
@@ -346,14 +342,10 @@ class AutomaticBrightnessController {
     private void handleLightSensorEvent(long time, float lux) {
         mHandler.removeMessages(MSG_UPDATE_AMBIENT_LUX);
 
-<<<<<<< HEAD
-        if (DEBUG) Slog.d(TAG, "handleLightSensorEvent: time=" + time + ", lux=" + lux);
-=======
         if (mAmbientLightRingBuffer.size() == 0) {
             // switch to using the steady-state sample rate after grabbing the initial light sample
             adjustLightSensorRate(mNormalLightSensorRate);
         }
->>>>>>> 9f8c8663ff0ed5477930608b0aca871ecc883d66
         applyLightSensorMeasurement(time, lux);
         updateAmbientLux(time);
         if (mUseActiveDozeLightSensorConfig && mDozing) {

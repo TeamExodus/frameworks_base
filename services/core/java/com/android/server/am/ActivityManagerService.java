@@ -1587,7 +1587,6 @@ public final class ActivityManagerService extends ActivityManagerNative
     static final int NOTIFY_ACTIVITY_DISMISSING_DOCKED_STACK_MSG = 68;
     static final int SHOW_UNSUPPORTED_DISPLAY_SIZE_DIALOG_MSG = 69;
     static final int NOTIFY_VR_SLEEPING_MSG = 70;
-    static final int NETWORK_OPTS_CHECK_MSG = 71;
 
     static final int FIRST_ACTIVITY_STACK_MSG = 100;
     static final int FIRST_BROADCAST_QUEUE_MSG = 200;
@@ -2420,23 +2419,6 @@ public final class ActivityManagerService extends ActivityManagerNative
             } case NOTIFY_VR_SLEEPING_MSG: {
                 notifyVrManagerOfSleepState(msg.arg1 != 0);
             } break;
-            case NETWORK_OPTS_CHECK_MSG: {
-                int flag = msg.arg1;
-                String packageName = (String)msg.obj;
-                if (flag == 0) {
-                    if (mActivityTrigger != null) {
-                        synchronized (mNetLock) {
-                            if (mActiveNetType >= 0) {
-                                mActivityTrigger.activityMiscTrigger(NETWORK_OPTS, packageName, mActiveNetType, 0);
-                                return;
-                            }
-                        }
-                    }
-                }
-                if (mActivityTrigger != null) {
-                    mActivityTrigger.activityMiscTrigger(NETWORK_OPTS, packageName, ConnectivityManager.TYPE_NONE, 1);
-                }
-            } break;
             }
         }
     };
@@ -3066,8 +3048,22 @@ public final class ActivityManagerService extends ActivityManagerNative
     }
 
     private final void networkOptsCheck(int flag, String packageName) {
-        mHandler.sendMessage(
-            mHandler.obtainMessage(NETWORK_OPTS_CHECK_MSG, flag, 0, packageName));
+        ConnectivityManager connectivityManager =
+            (ConnectivityManager)mContext.getSystemService(Context.CONNECTIVITY_SERVICE);
+        if (connectivityManager != null) {
+            NetworkInfo netInfo = connectivityManager.getActiveNetworkInfo();
+            if (netInfo != null) {
+                /* netType: 0 for Mobile, 1 for WIFI*/
+                int netType = netInfo.getType();
+                if (mActivityTrigger != null) {
+                    mActivityTrigger.networkOptsCheck(flag, netType, packageName);
+                }
+            } else {
+                if (mActivityTrigger != null) {
+                    mActivityTrigger.networkOptsCheck(flag, ConnectivityManager.TYPE_NONE, packageName);
+                }
+            }
+        }
     }
 
     boolean setFocusedActivityLocked(ActivityRecord r, String reason) {
