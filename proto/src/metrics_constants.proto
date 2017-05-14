@@ -24,6 +24,9 @@ message MetricsEvent {
 
   // Known visual elements: views or controls.
   enum View {
+
+    EXODUS_MODS = 999;
+
     // Unknown view
     VIEW_UNKNOWN = 0;
 
