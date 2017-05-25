@@ -351,7 +351,7 @@ public class NetworkControllerBaseTest extends SysuiTestCase {
                 ArgumentCaptor.forClass(String.class).capture(),
                 ArgumentCaptor.forClass(Boolean.class).capture(),
                 ArgumentCaptor.forClass(Integer.class).capture(),
-				ArgumentCaptor.forClass(Boolean.class).capture());
+                ArgumentCaptor.forClass(Boolean.class).capture());
         IconState iconState = iconArg.getValue();
 
         assertEquals("Data icon in status bar", typeIcon, (int) typeIconArg.getValue());

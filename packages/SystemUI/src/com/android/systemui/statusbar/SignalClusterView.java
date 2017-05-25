@@ -824,6 +824,8 @@ public class SignalClusterView
             mDataNetworkType.setVisibility(mDataNetworkTypeId != 0 ? View.VISIBLE
                     : View.GONE);
             mMobileEmbms.setVisibility(mMobileEmbmsId != 0 ? View.VISIBLE : View.GONE);
+            mMobileRoaming.setVisibility(mRoaming ? View.VISIBLE : View.GONE);
+
             return mMobileVisible;
         }
 

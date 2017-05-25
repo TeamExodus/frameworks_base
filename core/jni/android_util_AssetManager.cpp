@@ -187,7 +187,6 @@ static void verifySystemIdmaps(const char* overlay_dir)
                 argv[argc++] = AssetManager::TARGET_APK_PATH;
                 argv[argc++] = AssetManager::IDMAP_DIR;
 
-
                 // Directories to scan for overlays: if OVERLAY_THEME_DIR_PROPERTY is defined,
                 // use OVERLAY_DIR/<value of OVERLAY_THEME_DIR_PROPERTY> in addition to OVERLAY_DIR.
                 char subdir[PROP_VALUE_MAX];

@@ -354,6 +354,7 @@ public class UsbDeviceManager {
                         SystemProperties.get(USB_STATE_PROPERTY));
                 mAdbEnabled = UsbManager.containsFunction(getDefaultFunctions(),
                         UsbManager.USB_FUNCTION_ADB);
+
                 /**
                  * Remove MTP from persistent config, to bring usb to a good state
                  * after fixes to b/31814300. This block can be removed after the update
@@ -363,9 +364,8 @@ public class UsbDeviceManager {
                     SystemProperties.set(USB_PERSISTENT_CONFIG_PROPERTY,
                             UsbManager.removeFunction(persisted, UsbManager.USB_FUNCTION_MTP));
                 }
-				
-				boolean usbDataUnlocked = false;
 
+                boolean usbDataUnlocked = false;
                 if (mContext.getResources().getBoolean(
                         com.android.internal.R.bool.config_usb_data_unlock)) {
                     boolean mtpEnable = UsbManager.containsFunction(getDefaultFunctions(),

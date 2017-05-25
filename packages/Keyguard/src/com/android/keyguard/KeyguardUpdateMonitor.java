@@ -750,8 +750,8 @@ public class KeyguardUpdateMonitor implements TrustManager.TrustListener {
                     Log.v(TAG, "action " + action + " serviceState=" + serviceState + " subId="
                             + subId + " phoneId=" + phoneId);
                 }
-                mHandler.sendMessage(mHandler.obtainMessage(
-                        MSG_SERVICE_STATE_CHANGE, subId, phoneId, serviceState));
+                mHandler.sendMessage(
+                        mHandler.obtainMessage(MSG_SERVICE_STATE_CHANGE, subId, phoneId, serviceState));
             } else if (Intent.ACTION_LOCALE_CHANGED.equals(action)) {
                 mHandler.sendEmptyMessage(MSG_LOCALE_CHANGED);
             }
