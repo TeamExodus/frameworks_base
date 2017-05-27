@@ -716,7 +716,7 @@ public class SignalClusterView
 
         private ViewGroup mMobileGroup;
         private ImageView mMobile, mMobileDark, mMobileType, mMobileRoaming, mDataNetworkType,
-                mMobileEmbms;
+                mMobileEmbms, mMobileRoaming2;
 
         private int mDataActivityId = 0, mMobileActivityId = 0, mDataNetworkTypeId =0,
                 mMobileEmbmsId = 0;
@@ -747,6 +747,7 @@ public class SignalClusterView
 
             mMobileSingleGroup = (ViewGroup) root.findViewById(R.id.mobile_signal_single);
             mMobileStackedGroup = (ViewGroup) root.findViewById(R.id.mobile_signal_stacked);
+            mMobileRoaming2 = (ImageView) root.findViewById(R.id.mobile_roaming_2);
             mMobileRoaming  = (ImageView) root.findViewById(R.id.mobile_roaming);
         }
 
@@ -820,11 +821,16 @@ public class SignalClusterView
             mMobileType.setVisibility(mMobileTypeId != 0 ? View.VISIBLE : View.GONE);
             mDataActivity.setVisibility(mDataActivityId != 0 ? View.VISIBLE : View.GONE);
             mMobileActivity.setVisibility(mMobileActivityId != 0 ? View.VISIBLE : View.GONE);
-            mMobileRoaming.setVisibility(mRoaming ? View.VISIBLE : View.GONE);
+            if(mMobileTypeId != 0) {
+                mMobileRoaming.setVisibility(mRoaming ? View.VISIBLE : View.GONE);
+                mMobileRoaming2.setVisibility(View.GONE);
+            } else {
+                mMobileRoaming.setVisibility(View.GONE);
+                mMobileRoaming2.setVisibility(mRoaming ? View.VISIBLE : View.GONE);
+            }
             mDataNetworkType.setVisibility(mDataNetworkTypeId != 0 ? View.VISIBLE
                     : View.GONE);
             mMobileEmbms.setVisibility(mMobileEmbmsId != 0 ? View.VISIBLE : View.GONE);
-            mMobileRoaming.setVisibility(mRoaming ? View.VISIBLE : View.GONE);
 
             return mMobileVisible;
         }
@@ -887,6 +893,8 @@ public class SignalClusterView
             setTint(mDataNetworkType, StatusBarIconController.getTint(tintArea,
                     mDataNetworkType, tint));
             setTint(mMobileRoaming, StatusBarIconController.getTint(tintArea, mMobileRoaming,
+                    tint));
+            setTint(mMobileRoaming2, StatusBarIconController.getTint(tintArea, mMobileRoaming2,
                     tint));
         }
     }
