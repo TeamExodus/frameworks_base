@@ -48,7 +48,7 @@
     <integer-array name="qboost_weak_param_value"/>
 
     <!-- Defines the length of FP unlock boost -->
-    <integer name="fpunlockboost_duration">1200</integer>
+    <integer name="fpunlockboost_duration">1000</integer>
 
     <!-- Automatic brightness enhancements -->
     <integer name="config_autoBrightnessBrighteningLightFastDebounce">500</integer>
